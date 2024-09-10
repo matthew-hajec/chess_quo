@@ -27,7 +27,6 @@ defmodule EasyChessWeb.Router do
     # Lobby join
     get "/lobby/join/:code", LobbyController, :get_join_lobby
     post "/lobby/join/:code", LobbyController, :post_join_lobby
-
   end
 
   # Other scopes may use custom stacks.

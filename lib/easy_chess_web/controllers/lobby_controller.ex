@@ -10,6 +10,7 @@ defmodule EasyChessWeb.LobbyController do
 
     # TODO: Add error handling for lobby creation failure
     {:ok, code, hs, _gs} = EasyChess.Lobby.create_lobby(password)
+
     conn
     |> put_resp_cookie("current_game_secret", hs)
     |> put_resp_cookie("current_game_code", code)
@@ -19,23 +20,33 @@ defmodule EasyChessWeb.LobbyController do
   end
 
   def get_join_lobby(conn, _params) do
+    code = conn.params["code"]
+
+    if !EasyChess.Lobby.lobby_exists?(code) do
+      conn
+      |> put_flash(:error, "Lobby does not exist")
+      |> redirect(to: "/lobby/create")
+    end
+
     render(conn, :join_lobby)
   end
 
   def post_join_lobby(conn, params) do
-    # First, compare the password
+    # Extract parameters
     code = params["code"]
     password = params["lobby_password"]
 
     case EasyChess.Lobby.compare_password(code, password) do
       true ->
         {:ok, _hs, gs} = EasyChess.Lobby.get_lobby_secrets(code)
+
         conn
         |> put_resp_cookie("current_game_secret", gs)
         |> put_resp_cookie("current_game_code", code)
         |> put_resp_cookie("current_game_role", "guest")
         |> put_flash(:info, "Lobby Joined")
         |> redirect(to: "/#{code}")
+
       false ->
         conn
         |> put_flash(:error, "Invalid Password")
