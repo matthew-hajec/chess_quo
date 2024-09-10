@@ -39,6 +39,14 @@ defmodule EasyChess.Chess.Board do
     Enum.map(1..8, fn _ -> %EasyChess.Chess.Piece{type: :pawn, color: color} end)
   end
 
+  def index_to_row_col(index) do
+    {div(index, 8), rem(index, 8)}
+  end
+
+  def row_col_to_index(row, col) do
+    row * 8 + col
+  end
+
   def encode(board) do
     Jason.encode(board)
   end
