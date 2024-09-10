@@ -21,11 +21,12 @@ defmodule EasyChessWeb.Router do
     get "/", HomeController, :get
 
     # Lobby creation
-    get "/lobby", LobbyController, :get
-    post "/lobby", LobbyController, :post
+    get "/lobby/create", LobbyController, :get_create_lobby
+    post "/lobby/create", LobbyController, :post_create_lobby
 
-    # Gameplay
-    get "/:code", GameController, :get
+    # Lobby join
+    get "/lobby/join/:code", LobbyController, :get_join_lobby
+    post "/lobby/join/:code", LobbyController, :post_join_lobby
 
   end
 
