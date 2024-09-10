@@ -24,8 +24,8 @@ defmodule EasyChessWeb.LobbyController do
 
     if !EasyChess.Lobby.lobby_exists?(code) do
       conn
-      |> put_flash(:error, "Lobby does not exist")
-      |> redirect(to: "/lobby/create")
+      |> put_flash(:error, "No lobby exists with the given code.")
+      |> redirect(to: "/")
     end
 
     render(conn, :join_lobby)
