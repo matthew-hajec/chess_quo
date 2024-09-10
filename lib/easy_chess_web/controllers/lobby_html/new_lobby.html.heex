@@ -7,11 +7,11 @@
     <label for="host_color">Choose your starting color:</label>
     <select id="host_color" name="host_color">
       <option value="white">White</option>
-      
+
       <option value="black">Black</option>
     </select>
   </div>
-  
+
   <div class="pt-8">
     <label for="lobby_password">Set a lobby password:</label>
     <input
@@ -21,7 +21,7 @@
       value={Enum.random(100_000..999_999)}
     />
   </div>
-  
+
   <div class="pt-8">
     <button class="cursor-pointer rounded bg-slate-200 px-3 py-2 text-lg">Create Lobby</button>
     <p class="text-sm">Note: Your lobby code will be available upon creation.</p>

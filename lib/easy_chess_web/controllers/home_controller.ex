@@ -7,4 +7,9 @@ defmodule EasyChessWeb.HomeController do
     conn = assign(conn, :page_title, "Home")
     render(conn, :home)
   end
+
+  def post_join_game(conn, params) do
+    conn
+    |> redirect(to: "/lobby/join/#{params["lobby_code"]}")
+  end
 end

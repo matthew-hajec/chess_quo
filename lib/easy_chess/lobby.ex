@@ -41,8 +41,18 @@ defmodule EasyChess.Lobby do
     end
   end
 
-  def compare_secret(code, :host, secret) do
+  def is_valid_secret?(code, :host, secret) do
     case Redix.command(:redix, ["GET", "lobby:#{code}:host_secret"]) do
+      {:ok, value} ->
+        secret == value
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def is_valid_secret?(code, :guest, secret) do
+    case Redix.command(:redix, ["GET", "lobby:#{code}:guest_secret"]) do
       {:ok, value} ->
         secret == value
 

@@ -19,6 +19,7 @@ defmodule EasyChessWeb.Router do
 
     # Home Page
     get "/", HomeController, :get
+    post "/", HomeController, :post_join_game
 
     # Lobby creation
     get "/lobby/create", LobbyController, :get_create_lobby
@@ -27,6 +28,8 @@ defmodule EasyChessWeb.Router do
     # Lobby join
     get "/lobby/join/:code", LobbyController, :get_join_lobby
     post "/lobby/join/:code", LobbyController, :post_join_lobby
+
+    get "/:code", GameController, :get_game
   end
 
   # Other scopes may use custom stacks.
