@@ -1,0 +1,27 @@
+<.flash_group flash={@flash} />
+<h1 class="text-5xl">New Lobby</h1>
+
+
+<form method="POST">
+    <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()}>
+
+    <div class="pt-10">
+        <label for="host_color">Choose your starting color:</label>
+        <select id="host_color" name="host_color">
+            <option value="white">White</option>
+            <option value="black">Black</option>
+        </select>
+    </div>
+
+    <div class="pt-8">
+        <label for="lobby_password">Set a lobby password:</label>
+        <input id="lobby_password" name="lobby_password" class="bg-slate-200 rounded px-3 py-2" value={Enum.random(100000..999999)} />
+    </div>
+
+
+    <div class="pt-8">
+        <button class="cursor-pointer rounded bg-slate-200 px-3 py-2 text-lg">Create Lobby</button>
+       <p class="text-sm">Note: Your lobby code will be available upon creation.</p>
+
+    </div>
+</form>
