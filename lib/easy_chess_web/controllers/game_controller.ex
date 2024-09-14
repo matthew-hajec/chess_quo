@@ -16,9 +16,16 @@ defmodule EasyChessWeb.GameController do
         conn
         |> put_flash(:error, "Invalid game secret.")
         |> redirect(to: "/")
-
       true ->
-        render(conn, :game)
+        # Load the game state
+        {:ok, game} = EasyChess.Chess.GamesManager.get_game_state(code)
+
+        IO.inspect(game)
+
+        conn
+        |> assign(:role, role)
+        |> assign(:game, game)
+        |> render(:game)
     end
   end
 
