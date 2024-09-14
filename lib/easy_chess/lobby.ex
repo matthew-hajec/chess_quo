@@ -100,7 +100,8 @@ defmodule EasyChess.Lobby do
 
   def create_lobby(password) do
     with {:ok, code} <- generate_lobby_code(password),
-         {:ok, host_secret, guest_secret} <- generate_session_secrets(code) do
+         {:ok, host_secret, guest_secret} <- generate_session_secrets(code),
+         {:ok, _game} <- EasyChess.Chess.GamesManager.create_game(code) do
       {:ok, code, host_secret, guest_secret}
     else
       {:error, reason} ->

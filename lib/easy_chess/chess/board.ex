@@ -46,12 +46,4 @@ defmodule EasyChess.Chess.Board do
   def row_col_to_index(row, col) do
     row * 8 + col
   end
-
-  def encode(board) do
-    Jason.encode(board)
-  end
-
-  def decode(board) do
-    Jason.decode(board)
-  end
 end

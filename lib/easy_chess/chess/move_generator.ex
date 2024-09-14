@@ -45,4 +45,8 @@ defmodule EasyChess.Chess.MoveGenerator do
 
     moves
   end
+
+  defp calculate_moves(_board, _board_index, _type, _color) do
+    []
+  end
 end
