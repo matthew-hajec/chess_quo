@@ -22,17 +22,21 @@ defmodule EasyChess.Chess.Board do
       %EasyChess.Chess.Piece{type: :king, color: :black},
       %EasyChess.Chess.Piece{type: :bishop, color: :black},
       %EasyChess.Chess.Piece{type: :knight, color: :black},
-      %EasyChess.Chess.Piece{type: :rook, color: :black},
-    ] ++ pawn_row(:black) ++ List.duplicate(nil, 32) ++ pawn_row(:white) ++ [
-      %EasyChess.Chess.Piece{type: :rook, color: :white},
-      %EasyChess.Chess.Piece{type: :knight, color: :white},
-      %EasyChess.Chess.Piece{type: :bishop, color: :white},
-      %EasyChess.Chess.Piece{type: :queen, color: :white},
-      %EasyChess.Chess.Piece{type: :king, color: :white},
-      %EasyChess.Chess.Piece{type: :bishop, color: :white},
-      %EasyChess.Chess.Piece{type: :knight, color: :white},
-      %EasyChess.Chess.Piece{type: :rook, color: :white},
-    ]
+      %EasyChess.Chess.Piece{type: :rook, color: :black}
+    ] ++
+      pawn_row(:black) ++
+      List.duplicate(nil, 32) ++
+      pawn_row(:white) ++
+      [
+        %EasyChess.Chess.Piece{type: :rook, color: :white},
+        %EasyChess.Chess.Piece{type: :knight, color: :white},
+        %EasyChess.Chess.Piece{type: :bishop, color: :white},
+        %EasyChess.Chess.Piece{type: :queen, color: :white},
+        %EasyChess.Chess.Piece{type: :king, color: :white},
+        %EasyChess.Chess.Piece{type: :bishop, color: :white},
+        %EasyChess.Chess.Piece{type: :knight, color: :white},
+        %EasyChess.Chess.Piece{type: :rook, color: :white}
+      ]
   end
 
   defp pawn_row(color) do

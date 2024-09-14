@@ -2,16 +2,16 @@
 <h1 class="text-5xl">Welcome to EasyChess!</h1>
 
 <form method="POST">
-    <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
-    <div class="pt-8">
-        <label for="lobby_code">Get started by entering a lobby code:</label>
-        <input
-            id="lobby_code"
-            name="lobby_code"
-            class="bg-slate-200 rounded px-3 py-2"
-            placeholder="Lobby Code"
-        />
-    </div>
+  <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
+  <div class="pt-8">
+    <label for="lobby_code">Get started by entering a lobby code:</label>
+    <input
+      id="lobby_code"
+      name="lobby_code"
+      class="bg-slate-200 rounded px-3 py-2"
+      placeholder="Lobby Code"
+    />
+  </div>
 </form>
 <p>Or, create a new lobby:</p>
 <a href="/lobby/create" class="cursor-pointer rounded bg-slate-200 px-3 py-2">New Lobby</a>

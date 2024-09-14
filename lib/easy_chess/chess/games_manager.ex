@@ -22,9 +22,11 @@ defmodule EasyChess.Chess.GamesManager do
 
   def get_game_state(code) do
     case Redix.command(:redix, ["GET", "game:#{code}"]) do
-      {:ok, game} -> Jason.decode(game)
-      {:error, _} -> {:error, "Game not found"}
-      _ -> {:error, "Unknown error"}
+      {:ok, game} ->
+        Jason.decode(game)
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end
