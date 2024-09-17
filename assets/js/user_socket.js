@@ -44,6 +44,14 @@ if (isGamePage()) {
       console.log("Unable to get game state", resp)
     })
 
+  channel.push("get_valid_moves", {board_index: 9})
+    .receive("ok", resp => {
+      console.log("Valid moves", resp)
+    })
+    .receive("error", resp => {
+      console.log("Unable to get valid moves", resp)
+    })
+
 }
 
 // When you connect, you'll often need to authenticate the client.
