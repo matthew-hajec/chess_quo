@@ -5,6 +5,14 @@
   .aspect-ratio-1x1 {
     aspect-ratio: 1 / 1;
   }
+
+  .selected {
+    background-color: #f9a8d4;
+  }
+
+  .valid-move {
+    background-color: #b4f9a8;
+  }
 </style>
 
 <p>
@@ -20,7 +28,7 @@
 
 <h1>Game Board:</h1>
 
-<div class="relative w-4/5 max-w-screen-lg mx-auto">
+<div class="relative w-4/5 max-w-screen-lg mx-auto" id="board">
   <div class="grid grid-cols-8 grid-rows-8 gap-0 w-full h-full aspect-ratio-1x1">
     <%= for i <- 0..63 do %>
       <% piece = Enum.at(@game["board"]["squares"], i) %>
@@ -34,7 +42,7 @@
           do: "bg-white hover:bg-gray-300",
           else: "bg-gray-800 hover:bg-gray-600" %>
 
-      <div class={[base_class, color_class]}>
+      <div class={[base_class, color_class]} data-square-index={i}>
         <%= piece["color"] %>
         <%= piece["type"] %>
       </div>
