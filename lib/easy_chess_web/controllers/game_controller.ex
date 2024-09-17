@@ -16,11 +16,10 @@ defmodule EasyChessWeb.GameController do
         conn
         |> put_flash(:error, "Invalid game secret.")
         |> redirect(to: "/")
+
       true ->
         # Load the game state
         {:ok, game} = EasyChess.Chess.GamesManager.get_game_state(code)
-
-        IO.inspect(game)
 
         conn
         |> assign(:role, role)
@@ -28,7 +27,6 @@ defmodule EasyChessWeb.GameController do
         |> render(:game)
     end
   end
-
 
   def role_from_string("host"), do: :host
   def role_from_string(_), do: :guest

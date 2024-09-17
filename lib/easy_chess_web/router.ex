@@ -29,7 +29,7 @@ defmodule EasyChessWeb.Router do
     get "/lobby/join/:code", LobbyController, :get_join_lobby
     post "/lobby/join/:code", LobbyController, :post_join_lobby
 
-    get "/:code", GameController, :get_game
+    get "/play/:code", GameController, :get_game
   end
 
   # Other scopes may use custom stacks.

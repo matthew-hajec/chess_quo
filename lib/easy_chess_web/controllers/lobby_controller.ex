@@ -1,6 +1,13 @@
 defmodule EasyChessWeb.LobbyController do
   use EasyChessWeb, :controller
 
+  def help_set_game_cookies(conn, role, code, secret) do
+    conn
+    |> put_resp_cookie("current_game_secret", secret, http_only: false)
+    |> put_resp_cookie("current_game_code", code, http_only: false)
+    |> put_resp_cookie("current_game_role", role, http_only: false)
+  end
+
   def get_create_lobby(conn, _params) do
     render(conn, :new_lobby)
   end
@@ -12,11 +19,9 @@ defmodule EasyChessWeb.LobbyController do
     {:ok, code, hs, _gs} = EasyChess.Lobby.create_lobby(password)
 
     conn
-    |> put_resp_cookie("current_game_secret", hs)
-    |> put_resp_cookie("current_game_code", code)
-    |> put_resp_cookie("current_game_role", "host")
+    |> help_set_game_cookies("host", code, hs)
     |> put_flash(:info, "Lobby Created")
-    |> redirect(to: "/#{code}")
+    |> redirect(to: "/play/#{code}")
   end
 
   def get_join_lobby(conn, _params) do
@@ -41,11 +46,9 @@ defmodule EasyChessWeb.LobbyController do
         {:ok, _hs, gs} = EasyChess.Lobby.get_lobby_secrets(code)
 
         conn
-        |> put_resp_cookie("current_game_secret", gs)
-        |> put_resp_cookie("current_game_code", code)
-        |> put_resp_cookie("current_game_role", "guest")
+        |> help_set_game_cookies("guest", code, gs)
         |> put_flash(:info, "Lobby Joined")
-        |> redirect(to: "/#{code}")
+        |> redirect(to: "/play/#{code}")
 
       false ->
         conn
