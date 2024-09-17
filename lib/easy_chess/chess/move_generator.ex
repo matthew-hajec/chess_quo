@@ -59,5 +59,4 @@ defmodule EasyChess.Chess.MoveGenerator do
       []
     end
   end
-
 end

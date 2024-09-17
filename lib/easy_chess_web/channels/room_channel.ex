@@ -49,10 +49,10 @@ defmodule EasyChessWeb.RoomChannel do
     else
       false ->
         {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
+
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
     end
-
   end
 
   defp role_from_string("host"), do: :host
