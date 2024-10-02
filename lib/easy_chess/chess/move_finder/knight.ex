@@ -36,7 +36,7 @@ defmodule EasyChess.MoveFinder.Knight do
             {:cont, [Move.new(index, current_index, piece) | acc]}
 
           %Piece{color: color} when color == piece.color ->
-            {:halt, acc}
+            {:cont, acc}
 
           %Piece{color: color} when color != piece.color ->
             {:cont, [Move.new(index, current_index, piece) | acc]}
