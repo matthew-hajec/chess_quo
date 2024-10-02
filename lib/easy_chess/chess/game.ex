@@ -122,15 +122,7 @@ defmodule EasyChess.Chess.Game do
   end
 
   def apply_move(game, move) do
-    new_board =
-      Enum.map(game.board, fn piece ->
-        if piece == move.piece do
-          nil
-        else
-          piece
-        end
-      end)
-
+    new_board = List.replace_at(game.board, move.from, nil)
     new_board = List.replace_at(new_board, move.to, move.piece)
 
     %EasyChess.Chess.Game{game | board: new_board, turn: next_turn(game.turn), previous_move: move}
