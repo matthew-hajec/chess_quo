@@ -27,7 +27,10 @@ if (isGamePage()) {
     .receive("ok", resp => console.log("Joined successfully", resp))
     .receive("error", resp => console.log("Unable to join", resp));
 
+  const clientColor = cookies.current_game_color
+
   let selectedSquareIdx = null;
+  let gameState = null;
 
   function loadGameState() {
     channel.push("get_game_state", {})
@@ -42,8 +45,10 @@ if (isGamePage()) {
     for (let i = 0; i < gameState.board.length; i++) {
       const piece = gameState.board[i];
       const square = document.querySelector(`[data-square-index="${i}"]`);
+
+      square.innerHTML = "";
+
       if (square && piece) {
-        console.log("Rendering piece", piece);
         square.innerHTML = `${piece.color} ${piece.piece}`;
       }
     }
@@ -101,9 +106,33 @@ if (isGamePage()) {
   // Handle square click events
   document.addEventListener("click", ev => {
     const squareIndex = ev.target.getAttribute("data-square-index");
+    const piece = gameState.board[squareIndex];
 
-    if (squareIndex) {
+    isPossibleMove = (selectedSquareIdx !== null && ev.target.classList.contains("valid-move"));
+
+    if (isPossibleMove) {
+      // Had a square selected and clicked on a valid move
+      console.log("Valid move to", squareIndex);
+      channel.push("make_move", { from: parseInt(selectedSquareIdx), to: parseInt(squareIndex) })
+        .receive("ok", resp => {
+          console.log("Move successful", resp);
+          unselectSquare();
+        })
+        .receive("error", resp => console.log("Unable to make move", resp));
+    } else if (squareIndex && piece && piece.color === clientColor) {
+      // Clicked on own piece
       selectSquare(squareIndex);
+    } else {
+      // Clicked on a square with no valid move or own piece
+      unselectSquare()
     }
+  });
+
+  // Handle game state updates
+  channel.on("game_state", resp => {
+    console.log("Received game state", resp.game);
+    gameState = JSON.parse(resp.game);
+    console.log("Received game state", gameState)
+    renderGameState(gameState);
   });
 }

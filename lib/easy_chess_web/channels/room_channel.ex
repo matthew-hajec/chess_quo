@@ -59,6 +59,53 @@ defmodule EasyChessWeb.RoomChannel do
     end
   end
 
+  def handle_in("make_move", params, socket) do
+    lobby_code = socket.assigns[:lobby_code]
+    role = socket.assigns[:role]
+    from = params["from"]
+    to = params["to"]
+
+    # Get the game state
+    {:ok, game} = EasyChess.Chess.GamesManager.get_game(lobby_code)
+
+    # Get the host color
+    {:ok, host_color} = EasyChess.Lobby.get_host_color(lobby_code)
+
+    # Get the color of the player making the move
+    player_color = if role == :host, do: host_color, else: opposite_color(host_color)
+
+    # Get the piece at the from index
+    piece = EasyChess.Chess.Game.at(game, from)
+
+    # Ensure the piece is the correct color
+    is_correct_color = Atom.to_string(piece.color) == player_color
+
+    # Current turn
+    is_turn = Atom.to_string(game.turn) == player_color
+
+    # Make sure the move is in the list of valid moves
+    valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
+    move = Enum.find(valid_moves, fn move -> move.from == from and move.to == to end)
+
+    if is_turn and is_correct_color and move != nil do
+      # Apply the move
+      new_game = EasyChess.Chess.Game.apply_move(game, move)
+
+      # Save the new game state
+      EasyChess.Chess.GamesManager.save_game(lobby_code, new_game)
+
+      # Broadcast the new game state
+      broadcast!(socket, "game_state", %{game: Poison.encode!(new_game)})
+
+      {:reply, {:ok, Poison.encode!(new_game)}, socket}
+    else
+      {:reply, {:error, %{reason: "invalid_move"}}, socket}
+    end
+  end
+
+  defp opposite_color("white"), do: "black"
+  defp opposite_color("black"), do: "white"
+
   defp role_from_string("host"), do: :host
   defp role_from_string(_), do: :guest
 

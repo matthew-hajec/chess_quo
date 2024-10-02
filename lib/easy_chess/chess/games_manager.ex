@@ -14,15 +14,16 @@ defmodule EasyChess.Chess.GamesManager do
   def create_game(code) do
     # Create a new game and save it to the database
     game = Game.new()
-    save_game(game, code)
+    save_game(code, game)
   end
 
   @doc """
   Saves the state of a given game to the database.
   """
-  def save_game(game, code) do
+  def save_game(code, game) do
     # Encode the game state and then save to the database
     with {:ok, encoded_game} <- Poison.encode(game),
+         IO.inspect("Saving game: #{inspect encoded_game}"),
          {:ok, _} <- Redix.command(@redix_pool, ["SET", "game:#{code}", encoded_game]) do
       {:ok, game}
     else
