@@ -1,11 +1,12 @@
 defmodule EasyChessWeb.LobbyController do
   use EasyChessWeb, :controller
 
-  def help_set_game_cookies(conn, role, code, secret) do
+  def help_set_game_cookies(conn, role, code, secret, color) do
     conn
     |> put_resp_cookie("current_game_secret", secret, http_only: false)
     |> put_resp_cookie("current_game_code", code, http_only: false)
     |> put_resp_cookie("current_game_role", role, http_only: false)
+    |> put_resp_cookie("current_game_color", color, http_only: false)
   end
 
   def get_create_lobby(conn, _params) do
@@ -13,13 +14,15 @@ defmodule EasyChessWeb.LobbyController do
   end
 
   def post_create_lobby(conn, params) do
+    # TODO: Validate inputs
     password = params["lobby_password"]
+    host_color = params["host_color"]
 
     # TODO: Add error handling for lobby creation failure
-    {:ok, code, hs, _gs} = EasyChess.Lobby.create_lobby(password)
+    {:ok, code, hs, _gs} = EasyChess.Lobby.create_lobby(password, host_color)
 
     conn
-    |> help_set_game_cookies("host", code, hs)
+    |> help_set_game_cookies("host", code, hs, host_color)
     |> put_flash(:info, "Lobby Created")
     |> redirect(to: "/play/#{code}")
   end
@@ -44,9 +47,12 @@ defmodule EasyChessWeb.LobbyController do
     case EasyChess.Lobby.compare_password(code, password) do
       true ->
         {:ok, _hs, gs} = EasyChess.Lobby.get_lobby_secrets(code)
+        {:ok, host_color} = EasyChess.Lobby.get_host_color(code)
+
+        guest_color = if host_color == "white", do: "black", else: "white"
 
         conn
-        |> help_set_game_cookies("guest", code, gs)
+        |> help_set_game_cookies("guest", code, gs, guest_color)
         |> put_flash(:info, "Lobby Joined")
         |> redirect(to: "/play/#{code}")
 

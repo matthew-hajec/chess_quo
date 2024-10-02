@@ -98,9 +98,30 @@ defmodule EasyChess.Lobby do
     end
   end
 
-  def create_lobby(password) do
+  def set_host_color(code, color) do
+    case Redix.command(:redix, ["SET", "lobby:#{code}:host_color", color]) do
+      {:ok, "OK"} ->
+        {:ok, "OK"}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def get_host_color(code) do
+    case Redix.command(:redix, ["GET", "lobby:#{code}:host_color"]) do
+      {:ok, color} ->
+        {:ok, color}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def create_lobby(password, host_color) do
     with {:ok, code} <- generate_lobby_code(password),
          {:ok, host_secret, guest_secret} <- generate_session_secrets(code),
+         {:ok, _} <- set_host_color(code, host_color),
          {:ok, _game} <- EasyChess.Chess.GamesManager.create_game(code) do
       {:ok, code, host_secret, guest_secret}
     else
