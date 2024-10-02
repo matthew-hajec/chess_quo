@@ -80,13 +80,13 @@ defmodule EasyChess.Chess.MoveFinder do
   """
   def up_moves(game, index, piece) do
     # Start searching from the rank above the rank of the piece
-    start_rank = div(index, 8) + 1
+    {rank, file} = rank_and_file(index)
 
-    Enum.reduce_while(start_rank..7, [], fn i, acc ->
-      # We use `rem` to get the file of the current square
-      current_index = i * 8 + rem(index, 8)
+    Enum.reduce_while(1..7, [], fn i, acc ->
+      new_rank = rank + i
+      current_index = index(new_rank, file)
 
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(file) or !valid_rank?(rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
@@ -104,14 +104,13 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   def down_moves(game, index, piece) do
-    # Start searching from the rank below the rank of the piece
-    start_rank = div(index, 8) - 1
+    {rank, file} = rank_and_file(index)
 
-    Enum.reduce_while(start_rank..0//-1, [], fn i, acc ->
-      # We use `rem` to get the file of the current square
-      current_index = i * 8 + rem(index, 8)
+    Enum.reduce_while(1..7, [], fn i, acc ->
+      new_rank = rank - i
+      current_index = index(new_rank, file)
 
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(file) or !valid_rank?(rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
@@ -129,14 +128,13 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   def left_moves(game, index, piece) do
-    # Start searching from the file to the left of the piece
-    start_file = rem(index, 8) - 1
+    {rank, file} = rank_and_file(index)
 
-    Enum.reduce_while(start_file..0//-1, [], fn i, acc ->
-      # We use `div` to get the rank of the current square
-      current_index = div(index, 8) * 8 + i
+    Enum.reduce_while(1..7, [], fn i, acc ->
+      new_file = file - i
+      current_index = index(rank, new_file)
 
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(new_file) or !valid_rank?(rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
@@ -154,14 +152,13 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   def right_moves(game, index, piece) do
-    # Start searching from the file to the right of the piece
-    start_file = rem(index, 8) + 1
+    {rank, file} = rank_and_file(index)
 
-    Enum.reduce_while(start_file..7, [], fn i, acc ->
-      # We use `div` to get the rank of the current square
-      current_index = div(index, 8) * 8 + i
+    Enum.reduce_while(1..7, [], fn i, acc ->
+      new_file = file + i
+      current_index = index(rank, new_file)
 
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(new_file) or !valid_rank?(rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
@@ -179,16 +176,14 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   def up_right_moves(game, index, piece) do
-    start_rank = div(index, 8)
-    start_file = rem(index, 8)
+    {rank, file} = rank_and_file(index)
 
     Enum.reduce_while(1..7, [], fn i, acc ->
-      current_rank = start_rank + i
-      current_file = start_file + i
+      next_rank = rank + i
+      next_file = file + i
+      current_index = index(next_rank, next_file)
 
-      current_index = current_rank * 8 + current_file
-
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(next_file) or !valid_rank?(next_rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
@@ -206,16 +201,14 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   def up_left_moves(game, index, piece) do
-    start_rank = div(index, 8)
-    start_file = rem(index, 8)
+    {rank, file} = rank_and_file(index)
 
     Enum.reduce_while(1..7, [], fn i, acc ->
-      current_rank = start_rank + i
-      current_file = start_file - i
+      next_rank = rank + i
+      next_file = file - i
+      current_index = index(next_rank, next_file)
 
-      current_index = current_rank * 8 + current_file
-
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(next_file) or !valid_rank?(next_rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
@@ -233,16 +226,14 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   def down_right_moves(game, index, piece) do
-    start_rank = div(index, 8)
-    start_file = rem(index, 8)
+    {rank, file} = rank_and_file(index)
 
     Enum.reduce_while(1..7, [], fn i, acc ->
-      current_rank = start_rank - i
-      current_file = start_file + i
+      next_rank = rank - i
+      next_file = file + i
+      current_index = index(next_rank, next_file)
 
-      current_index = current_rank * 8 + current_file
-
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(next_file) or !valid_rank?(next_rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
@@ -260,16 +251,14 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   def down_left_moves(game, index, piece) do
-    start_rank = div(index, 8)
-    start_file = rem(index, 8)
+    {rank, file} = rank_and_file(index)
 
     Enum.reduce_while(1..7, [], fn i, acc ->
-      current_rank = start_rank - i
-      current_file = start_file - i
+      next_rank = rank - i
+      next_file = file - i
+      current_index = index(next_rank, next_file)
 
-      current_index = current_rank * 8 + current_file
-
-      if !in_bounds?(current_index) do
+      if !in_bounds?(current_index) or !valid_file?(next_file) or !valid_rank?(next_rank) do
         {:halt, acc}
       else
         case Game.at(game, current_index) do
