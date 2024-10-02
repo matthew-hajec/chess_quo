@@ -47,12 +47,14 @@ if (isGamePage()) {
 
   // Select a square and highlight valid moves
   function selectSquare(squareIndex) {
+    console.log("Selecting square", squareIndex)
     // Unselect previous square
     unselectSquare();
 
     // Request valid moves for the selected square
     channel.push("get_valid_moves", { board_index: parseInt(squareIndex) })
       .receive("ok", resp => {
+        console.log("Valid moves", resp);
         selectedSquareIdx = squareIndex;
         const selectedSquare = document.querySelector(`[data-square-index="${squareIndex}"]`);
         if (selectedSquare) {
@@ -60,7 +62,15 @@ if (isGamePage()) {
 
           // Highlight valid moves
           resp.forEach(move => {
-            const square = document.querySelector(`[data-square-index="${move}"]`);
+            // convert the JSON-serialized data to a JS object
+            move = JSON.parse(move);
+
+            // print the type of move
+            console.log("data type of move", typeof move);
+
+            console.log(move)
+            console.log("Highlighting valid move", move.to);
+            const square = document.querySelector(`[data-square-index="${move.to}"]`);
             if (square) {
               square.classList.add("valid-move");
             }

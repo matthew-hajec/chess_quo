@@ -1,7 +1,7 @@
 defmodule EasyChess.Chess.Game do
   alias EasyChess.Chess.{Piece, Move}
 
-  @derive [Poison.Encoder]
+  @derive Poison.Encoder
   defstruct turn: :white,
 
             # 64 elements, 0-7 is the first row, 8-15 is the second row, etc.
