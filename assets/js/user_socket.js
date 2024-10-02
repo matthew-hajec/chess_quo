@@ -27,12 +27,27 @@ if (isGamePage()) {
     .receive("ok", resp => console.log("Joined successfully", resp))
     .receive("error", resp => console.log("Unable to join", resp));
 
-  // Request the current game state
-  channel.push("get_game_state", {})
-    .receive("ok", resp => console.log("Game state", resp))
-    .receive("error", resp => console.log("Unable to get game state", resp));
-
   let selectedSquareIdx = null;
+
+  function loadGameState() {
+    channel.push("get_game_state", {})
+      .receive("ok", resp => {
+        gameState = JSON.parse(resp);
+        renderGameState(gameState);
+      })
+      .receive("error", resp => console.log("Unable to get game state", resp));
+  }
+
+  function renderGameState(gameState) {
+    for (let i = 0; i < gameState.board.length; i++) {
+      const piece = gameState.board[i];
+      const square = document.querySelector(`[data-square-index="${i}"]`);
+      if (square && piece) {
+        console.log("Rendering piece", piece);
+        square.innerHTML = `${piece.color} ${piece.piece}`;
+      }
+    }
+  }
 
   // Unselect all squares and reset the selection index
   function unselectSquare() {
@@ -79,6 +94,9 @@ if (isGamePage()) {
       })
       .receive("error", resp => console.log("Unable to get valid moves", resp));
   }
+
+  // Load the game state when the page loads
+  loadGameState();
 
   // Handle square click events
   document.addEventListener("click", ev => {
