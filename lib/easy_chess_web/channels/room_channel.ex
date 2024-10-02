@@ -32,9 +32,12 @@ defmodule EasyChessWeb.RoomChannel do
 
     IO.inspect("Lobby code: #{lobby_code}")
 
-    {:ok, game} = EasyChess.Chess.GamesManager.get_game_state(lobby_code)
+    {:ok, game} = EasyChess.Chess.GamesManager.get_game(lobby_code)
 
-    {:reply, {:ok, game}, socket}
+    # Encode the game state to JSON
+    game_json = Poison.encode!(game)
+
+    {:reply, {:ok, game_json}, socket}
   end
 
   def handle_in("get_valid_moves", params, socket) do
@@ -42,16 +45,17 @@ defmodule EasyChessWeb.RoomChannel do
     board_index = params["board_index"]
 
     with true <- is_valid_board_index?(board_index) do
-      {:ok, game} = EasyChess.Chess.GamesManager.get_game_state(lobby_code)
-      valid_moves = EasyChess.Chess.MoveGenerator.valid_moves(game["board"], board_index)
+      {:ok, game} = EasyChess.Chess.GamesManager.get_game(lobby_code)
+      valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
+      piece_moves = Enum.filter(valid_moves, fn move -> move.from == board_index end)
 
-      {:reply, {:ok, valid_moves}, socket}
+      # Encode the piece moves to JSON
+      piece_moves_json = Enum.map(piece_moves, &Poison.encode!/1)
+
+      {:reply, {:ok, piece_moves_json}, socket}
     else
       false ->
         {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
-
-      {:error, reason} ->
-        {:reply, {:error, %{reason: reason}}, socket}
     end
   end
 

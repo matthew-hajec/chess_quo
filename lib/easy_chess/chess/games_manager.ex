@@ -1,29 +1,45 @@
 defmodule EasyChess.Chess.GamesManager do
   @moduledoc """
-  Manages creation, updating, and deletion of chess games.
+  Manages creating, updating, and deleting chess games from a shared database.
 
-  Uses the `:redix` store to store games.
+  Uses the Redix library to interact with Redis
   """
+  alias EasyChess.Chess.Game
 
+  @redix_pool :redix
+
+  @doc """
+  Creates a new game with the given code.
+  """
   def create_game(code) do
-    game = %EasyChess.Chess.Game{board: EasyChess.Chess.Board.new()}
-    save_game_state(game, code)
+    # Create a new game and save it to the database
+    game = Game.new()
+    save_game(game, code)
   end
 
-  def save_game_state(game, code) do
-    case Jason.encode(game) do
-      {:ok, json} ->
-        Redix.command(:redix, ["SET", "game:#{code}", json])
-
+  @doc """
+  Saves the state of a given game to the database.
+  """
+  def save_game(game, code) do
+    # Encode the game state and then save to the database
+    with {:ok, encoded_game} <- Poison.encode(game),
+         {:ok, _} <- Redix.command(@redix_pool, ["SET", "game:#{code}", encoded_game]) do
+      {:ok, game}
+    else
       {:error, reason} ->
         {:error, reason}
-    end
+         end
+
   end
 
-  def get_game_state(code) do
-    case Redix.command(:redix, ["GET", "game:#{code}"]) do
-      {:ok, game} ->
-        Jason.decode(game)
+  @doc """
+  Retrieves the state of a game from the database.
+  """
+  def get_game(code) do
+    # Get the game state from the database and then decode it
+    case Redix.command(@redix_pool, ["GET", "game:#{code}"]) do
+      {:ok, encoded_game} ->
+        {:ok, Poison.decode!(encoded_game, as: %Game{})}
 
       {:error, reason} ->
         {:error, reason}

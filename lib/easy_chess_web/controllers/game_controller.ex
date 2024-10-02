@@ -19,7 +19,7 @@ defmodule EasyChessWeb.GameController do
 
       true ->
         # Load the game state
-        {:ok, game} = EasyChess.Chess.GamesManager.get_game_state(code)
+        {:ok, game} = EasyChess.Chess.GamesManager.get_game(code)
 
         conn
         |> assign(:role, role)
