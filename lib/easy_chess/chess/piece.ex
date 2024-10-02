@@ -6,8 +6,15 @@ defmodule EasyChess.Chess.Piece do
   @valid_colors [:white, :black]
   @valid_pieces [:pawn, :rook, :knight, :bishop, :queen, :king]
 
+  @derive [Poison.Encoder]
   defstruct color: :white,
             piece: :pawn
+
+  defimpl Poison.Decoder do
+    def decode(%EasyChess.Chess.Piece{color: color, piece: piece}, _opts) do
+      %EasyChess.Chess.Piece{color: String.to_existing_atom(color), piece: String.to_existing_atom(piece)}
+    end
+  end
 
   @doc """
   Creates a new piece.

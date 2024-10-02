@@ -1,6 +1,7 @@
 defmodule EasyChess.Chess.Game do
-  alias EasyChess.Chess.Piece
+  alias EasyChess.Chess.{Piece, Move}
 
+  @derive [Poison.Encoder]
   defstruct turn: :white,
 
             # 64 elements, 0-7 is the first row, 8-15 is the second row, etc.
@@ -82,6 +83,28 @@ defmodule EasyChess.Chess.Game do
                   %Piece{color: :black, piece: :rook}
                 ],
             previous_move: nil
+
+  defimpl Poison.Decoder do
+    def decode(%EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move}, _opts) do
+      board = Enum.map(board, fn piece ->
+        if piece == nil do
+          nil
+        else
+          Poison.decode!(Poison.encode!(piece), as: %Piece{})
+        end
+      end)
+
+      turn = String.to_existing_atom(turn)
+
+      previous_move = if previous_move == nil do
+        nil
+      else
+        Poison.decode!(Poison.encode!(previous_move), as: %Move{})
+      end
+
+      %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move}
+    end
+  end
 
   @doc """
   Creates a new game state.
