@@ -768,11 +768,15 @@ defmodule MoveFinderTest do
 
       found_moves = MoveFinder.find_valid_moves(game)
 
-      valid_moves = Enum.sort_by([
-        Move.new(~B"a1", ~B"a2", Piece.new(:white, :king)),
-        Move.new(~B"a1", ~B"b2", Piece.new(:white, :king)),
-        Move.new(~B"a1", ~B"b1", Piece.new(:white, :king))
-      ], & &1.to)
+      valid_moves =
+        Enum.sort_by(
+          [
+            Move.new(~B"a1", ~B"a2", Piece.new(:white, :king)),
+            Move.new(~B"a1", ~B"b2", Piece.new(:white, :king)),
+            Move.new(~B"a1", ~B"b1", Piece.new(:white, :king))
+          ],
+          & &1.to
+        )
 
       assert valid_moves == found_moves
     end

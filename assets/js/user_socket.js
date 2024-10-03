@@ -51,7 +51,17 @@ if (isGamePage()) {
       if (square && piece) {
         square.innerHTML = `${piece.color} ${piece.piece}`;
       }
+
+      // Change the turn indicator
+      const turnIndicator = document.querySelector("#current-turn");
+      if (turnIndicator) {
+        turnIndicator.innerHTML = gameState.current_turn === clientColor ? clientColor : oppositeColor(clientColor);
+      }
     }
+  }
+
+  function oppositeColor(color) {
+    return color === "white" ? "black" : "white";
   }
 
   // Unselect all squares and reset the selection index

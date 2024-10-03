@@ -12,7 +12,10 @@ defmodule EasyChess.Chess.Piece do
 
   defimpl Poison.Decoder do
     def decode(%EasyChess.Chess.Piece{color: color, piece: piece}, _opts) do
-      %EasyChess.Chess.Piece{color: String.to_existing_atom(color), piece: String.to_existing_atom(piece)}
+      %EasyChess.Chess.Piece{
+        color: String.to_existing_atom(color),
+        piece: String.to_existing_atom(piece)
+      }
     end
   end
 

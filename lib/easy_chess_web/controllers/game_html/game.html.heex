@@ -1,6 +1,5 @@
 <.flash_group flash={@flash} />
 <style>
-  /* Add this style to make the aspect ratio utility work */
   .aspect-ratio-1x1 {
     aspect-ratio: 1 / 1;
   }
@@ -15,11 +14,7 @@
 </style>
 
 <p>
-  It is <%= if @game.turn == "white" do
-    "White's"
-  else
-    "Black's"
-  end %> turn
+  It is <span id="current-turn"></span>'s turn.
 </p>
 
 <p>You are the <%= @role %></p>
@@ -29,16 +24,14 @@
 <div class="relative w-4/5 max-w-screen-lg mx-auto" id="board">
   <div class="grid grid-cols-8 grid-rows-8 gap-0 w-full h-full aspect-ratio-1x1">
     <%= for i <- 0..63 do %>
-      <% piece = Enum.at(@game.board, i) %> <% row = div(i, 8) %> <% col = rem(i, 8) %> <% is_white_square =
-        rem(row + col, 2) == 0 %> <% base_class = "h-full w-full flex items-center justify-center" %> <% color_class =
+      <% row = div(i, 8) %> <% col = rem(i, 8) %>
+      <% is_white_square = rem(row + col, 2) == 1 %> <% base_class =
+        "h-full w-full flex items-center justify-center" %>
+      <% color_class =
         if is_white_square,
           do: "bg-white hover:bg-gray-300",
           else: "bg-gray-800 hover:bg-gray-600" %>
-      <div class={[base_class, color_class]} data-square-index={i}>
-        <% if piece != nil do %>
-        <%= piece.color %> <%= piece.piece %>
-        <% end %>
-      </div>
+      <div class={[base_class, color_class]} data-square-index={i}></div>
     <% end %>
   </div>
 </div>

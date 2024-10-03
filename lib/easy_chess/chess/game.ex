@@ -85,22 +85,27 @@ defmodule EasyChess.Chess.Game do
             previous_move: nil
 
   defimpl Poison.Decoder do
-    def decode(%EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move}, _opts) do
-      board = Enum.map(board, fn piece ->
-        if piece == nil do
-          nil
-        else
-          Poison.decode!(Poison.encode!(piece), as: %Piece{})
-        end
-      end)
+    def decode(
+          %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move},
+          _opts
+        ) do
+      board =
+        Enum.map(board, fn piece ->
+          if piece == nil do
+            nil
+          else
+            Poison.decode!(Poison.encode!(piece), as: %Piece{})
+          end
+        end)
 
       turn = String.to_existing_atom(turn)
 
-      previous_move = if previous_move == nil do
-        nil
-      else
-        Poison.decode!(Poison.encode!(previous_move), as: %Move{})
-      end
+      previous_move =
+        if previous_move == nil do
+          nil
+        else
+          Poison.decode!(Poison.encode!(previous_move), as: %Move{})
+        end
 
       %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move}
     end
@@ -125,7 +130,12 @@ defmodule EasyChess.Chess.Game do
     new_board = List.replace_at(game.board, move.from, nil)
     new_board = List.replace_at(new_board, move.to, move.piece)
 
-    %EasyChess.Chess.Game{game | board: new_board, turn: next_turn(game.turn), previous_move: move}
+    %EasyChess.Chess.Game{
+      game
+      | board: new_board,
+        turn: next_turn(game.turn),
+        previous_move: move
+    }
   end
 
   defp next_turn(:white), do: :black

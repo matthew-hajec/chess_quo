@@ -8,7 +8,6 @@ defmodule ChessJsonTest do
       piece = %Piece{color: :white, piece: :pawn}
 
       assert piece == Poison.decode!(Poison.encode!(piece), as: %Piece{})
-
     end
 
     test "encodes and decodes the move struct" do
@@ -31,6 +30,5 @@ defmodule ChessJsonTest do
 
       assert game == Poison.decode!(Poison.encode!(game), as: %Game{})
     end
-
   end
 end

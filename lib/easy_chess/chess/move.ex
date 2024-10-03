@@ -14,9 +14,7 @@ defmodule EasyChess.Chess.Move do
         piece: piece
       }
     end
-
   end
-
 
   @doc """
   Creates a new move.
