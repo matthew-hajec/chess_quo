@@ -803,5 +803,32 @@ defmodule MoveFinderTest do
       # King can capture all opponent pieces
       assert Enum.count(king_moves) == 6
     end
+
+    test "king cannot move into check" do
+      game =
+        setup_game([
+          {~B"c4", Piece.new(:white, :king)},
+          {~B"c2", Piece.new(:black, :bishop)},
+          {~B"d8", Piece.new(:black, :queen)},
+        ])
+
+      found_moves = MoveFinder.find_valid_moves(game)
+
+      white_king_moves =
+        Enum.filter(found_moves, fn move ->
+          move.piece.piece == :king && move.piece.color == :white
+        end)
+
+
+      # Can move to c3, b4,d5, and c5
+      valid_king_moves = Enum.sort_by([
+        Move.new(~B"c4", ~B"c3", Piece.new(:white, :king)),
+        Move.new(~B"c4", ~B"b4", Piece.new(:white, :king)),
+        Move.new(~B"c4", ~B"b5", Piece.new(:white, :king)),
+        Move.new(~B"c4", ~B"c5", Piece.new(:white, :king))
+      ], & &1.to)
+
+      assert white_king_moves == valid_king_moves
+    end
   end
 end
