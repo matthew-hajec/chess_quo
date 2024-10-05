@@ -17,7 +17,6 @@ defmodule EasyChessWeb.GameController do
   end
 
   def handle_get_game(conn, params) do
-    IO.inspect(params)
     code = params["code"]
     secret = conn.cookies["current_game_secret"]
     # Role is not verified, so it CAN NOT be trusted

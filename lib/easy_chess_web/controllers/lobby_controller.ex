@@ -14,7 +14,7 @@ defmodule EasyChessWeb.LobbyController do
   end
 
   @post_create_lobby_params_schema %{
-    lobby_password: [type: :string, min_length: 1, max_length: 100, required: true],
+    lobby_password: [type: :string, length: [min: 1, max: 100], required: true],
     host_color: [type: :string, format: ~r/^(white|black)$/, required: true]
   }
 
@@ -46,8 +46,8 @@ defmodule EasyChessWeb.LobbyController do
     end
   end
 
-  def get_join_lobby(conn, _params) do
-    code = conn.params["code"]
+  def get_join_lobby(conn, params) do
+    code = params["code"]
 
     if !EasyChess.Lobby.lobby_exists?(code) do
       conn
@@ -58,8 +58,22 @@ defmodule EasyChessWeb.LobbyController do
     render(conn, :join_lobby)
   end
 
+  @post_join_lobby_params_schema %{
+    code: [type: :string, length: [min: 8, max: 8], required: true],
+    lobby_password: [type: :string, length: [min: 1, max: 100], required: true]
+  }
   def post_join_lobby(conn, params) do
-    # Extract parameters
+    case Tarams.cast(params, @post_join_lobby_params_schema) do
+      {:ok, _} -> handle_post_join_lobby(conn, params)
+
+      {:error, _} ->
+        conn
+        |> put_flash(:error, "Invalid parameters")
+        |> redirect(to: "/lobby/join/#{params["code"]}")
+    end
+  end
+
+  defp handle_post_join_lobby(conn, params) do
     code = params["code"]
     password = params["lobby_password"]
 
