@@ -12,7 +12,6 @@ defmodule EasyChessWeb.GameController do
       {:error, _} ->
         conn
         |> put_flash(:error, "Invalid game code.")
-        |> put_status(400)
         |> redirect(to: "/")
     end
   end
@@ -30,13 +29,11 @@ defmodule EasyChessWeb.GameController do
         IO.inspect(code)
         conn
         |> put_flash(:error, "No lobby exists with the given code.")
-        |> put_status(404)
         |> redirect(to: "/")
 
       !EasyChess.Lobby.is_valid_secret?(code, role, secret) ->
         conn
         |> put_flash(:error, "Invalid game secret.")
-        |> put_status(403)
         |> redirect(to: "/")
 
       true ->
@@ -44,7 +41,6 @@ defmodule EasyChessWeb.GameController do
           {:error, _} ->
             conn
             |> put_flash(:error, "Error loading game state.")
-            |> put_status(500)
             |> redirect(to: "/")
 
           {:ok, game} ->

@@ -13,18 +13,37 @@ defmodule EasyChessWeb.LobbyController do
     render(conn, :new_lobby)
   end
 
+  @post_create_lobby_params_schema %{
+    lobby_password: [type: :string, min_length: 1, max_length: 100, required: true],
+    host_color: [type: :string, format: ~r/^(white|black)$/, required: true]
+  }
+
   def post_create_lobby(conn, params) do
-    # TODO: Validate inputs
+    case Tarams.cast(params, @post_create_lobby_params_schema) do
+      {:ok, _} -> handle_post_create_lobby(conn, params)
+
+      {:error, _} ->
+        conn
+        |> put_flash(:error, "Invalid parameters")
+        |> redirect(to: "/lobby/create")
+    end
+  end
+
+  defp handle_post_create_lobby(conn, params) do
     password = params["lobby_password"]
     host_color = params["host_color"]
 
-    # TODO: Add error handling for lobby creation failure
-    {:ok, code, hs, _gs} = EasyChess.Lobby.create_lobby(password, host_color)
+    case EasyChess.Lobby.create_lobby(password, host_color) do
+      {:ok, code, hs, _gs} ->
+        conn
+        |> help_set_game_cookies("host", code, hs, host_color)
+        |> redirect(to: "/play/#{code}")
 
-    conn
-    |> help_set_game_cookies("host", code, hs, host_color)
-    |> put_flash(:info, "Lobby Created")
-    |> redirect(to: "/play/#{code}")
+      {:error, reason} ->
+        conn
+        |> put_flash(:error, "Error creating lobby: #{reason}")
+        |> redirect(to: "/lobby/new")
+    end
   end
 
   def get_join_lobby(conn, _params) do
