@@ -1,6 +1,7 @@
 defmodule EasyChess.Lobby do
   @lobby_charset "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   @lobby_code_length 8
+  @lobby_expire_seconds 3600 # Lobby expires after 1 hour
 
   defp generate_lobby_code(password) do
     code =
@@ -32,8 +33,8 @@ defmodule EasyChess.Lobby do
       :crypto.strong_rand_bytes(24)
       |> Base.encode64()
 
-    with {:ok, "OK"} <- Redix.command(:redix, ["SET", "lobby:#{code}:host_secret", host_secret]),
-         {:ok, "OK"} <- Redix.command(:redix, ["SET", "lobby:#{code}:guest_secret", guest_secret]) do
+    with {:ok, "OK"} <- Redix.command(:redix, ["SET", "lobby:#{code}:host_secret", host_secret, "EX", @lobby_expire_seconds]),
+         {:ok, "OK"} <- Redix.command(:redix, ["SET", "lobby:#{code}:guest_secret", guest_secret, "EX", @lobby_expire_seconds]) do
       {:ok, host_secret, guest_secret}
     else
       {:error, reason} ->
@@ -95,7 +96,7 @@ defmodule EasyChess.Lobby do
   end
 
   def set_host_color(code, color) do
-    case Redix.command(:redix, ["SET", "lobby:#{code}:host_color", color]) do
+    case Redix.command(:redix, ["SET", "lobby:#{code}:host_color", color, "EX", @lobby_expire_seconds]) do
       {:ok, "OK"} ->
         {:ok, "OK"}
 
