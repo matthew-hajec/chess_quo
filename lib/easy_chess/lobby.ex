@@ -72,15 +72,11 @@ defmodule EasyChess.Lobby do
   end
 
   def compare_password(code, password) do
-    IO.inspect("Comparing password #{password} for lobby #{code}")
-
     case Redix.command(:redix, ["GET", "lobby:#{code}:password"]) do
       {:ok, value} ->
-        IO.inspect("Password for lobby #{code} is #{value}")
         password == value
 
       {:error, reason} ->
-        IO.inspect("Error getting password for lobby #{code}: #{reason}")
         {:error, reason}
     end
   end

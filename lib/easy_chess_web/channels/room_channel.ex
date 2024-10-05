@@ -30,8 +30,6 @@ defmodule EasyChessWeb.RoomChannel do
   def handle_in("get_game_state", _, socket) do
     lobby_code = socket.assigns[:lobby_code]
 
-    IO.inspect("Lobby code: #{lobby_code}")
-
     {:ok, game} = EasyChess.Chess.GamesManager.get_game(lobby_code)
 
     # Encode the game state to JSON
@@ -102,7 +100,6 @@ defmodule EasyChessWeb.RoomChannel do
       # Check the game condition
       game_condition = EasyChess.Chess.MoveFinder.game_condition(new_game)
 
-      IO.puts("Game condition: #{game_condition}")
       case game_condition do
         :checkmate ->
           broadcast!(socket, "game_over", %{winner: player_color})

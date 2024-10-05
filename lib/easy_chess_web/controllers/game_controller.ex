@@ -24,8 +24,6 @@ defmodule EasyChessWeb.GameController do
 
     cond do
       !EasyChess.Lobby.lobby_exists?(code) ->
-        IO.puts("No lobby exists with the given code.")
-        IO.inspect(code)
         conn
         |> put_flash(:error, "No lobby exists with the given code.")
         |> redirect(to: "/")
