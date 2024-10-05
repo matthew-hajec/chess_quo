@@ -57,7 +57,8 @@ defmodule EasyChess.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:redix, "~> 1.5"},
-      {:poison, "~> 6.0"}
+      {:poison, "~> 6.0"},
+      {:tarams, "~> 1.8"}
     ]
   end
 
