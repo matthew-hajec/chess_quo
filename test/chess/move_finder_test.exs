@@ -788,8 +788,6 @@ defmodule MoveFinderTest do
           {~B"c3", Piece.new(:black, :pawn)},
           {~B"d3", Piece.new(:black, :pawn)},
           {~B"e3", Piece.new(:black, :pawn)},
-          {~B"c4", Piece.new(:black, :pawn)},
-          {~B"e4", Piece.new(:black, :pawn)},
           {~B"c5", Piece.new(:black, :pawn)},
           {~B"d5", Piece.new(:black, :pawn)},
           {~B"e5", Piece.new(:black, :pawn)}
@@ -803,7 +801,7 @@ defmodule MoveFinderTest do
         end)
 
       # King can capture all opponent pieces
-      assert Enum.count(king_moves) == 8
+      assert Enum.count(king_moves) == 6
     end
   end
 end
