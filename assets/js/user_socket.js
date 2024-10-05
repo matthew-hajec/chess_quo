@@ -55,13 +55,9 @@ if (isGamePage()) {
       // Change the turn indicator
       const turnIndicator = document.querySelector("#current-turn");
       if (turnIndicator) {
-        turnIndicator.innerHTML = gameState.current_turn === clientColor ? clientColor : oppositeColor(clientColor);
+        turnIndicator.innerHTML = gameState.turn;
       }
     }
-  }
-
-  function oppositeColor(color) {
-    return color === "white" ? "black" : "white";
   }
 
   // Unselect all squares and reset the selection index
@@ -144,5 +140,11 @@ if (isGamePage()) {
     gameState = JSON.parse(resp.game);
     console.log("Received game state", gameState)
     renderGameState(gameState);
+  });
+
+  // Handle game over events
+  channel.on("game_over", resp => {
+    console.log("Game over", resp);
+    alert("Game over! " + resp.winner);
   });
 }

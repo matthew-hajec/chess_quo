@@ -87,6 +87,8 @@ defmodule EasyChessWeb.RoomChannel do
     valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
     move = Enum.find(valid_moves, fn move -> move.from == from and move.to == to end)
 
+
+
     if is_turn and is_correct_color and move != nil do
       # Apply the move
       new_game = EasyChess.Chess.Game.apply_move(game, move)
@@ -96,6 +98,21 @@ defmodule EasyChessWeb.RoomChannel do
 
       # Broadcast the new game state
       broadcast!(socket, "game_state", %{game: Poison.encode!(new_game)})
+
+      # Check the game condition
+      game_condition = EasyChess.Chess.MoveFinder.game_condition(new_game)
+
+      IO.puts("Game condition: #{game_condition}")
+      case game_condition do
+        :checkmate ->
+          broadcast!(socket, "game_over", %{winner: player_color})
+
+        :stalemate ->
+          broadcast!(socket, "game_over", %{winner: "draw"})
+
+        _ ->
+          nil
+      end
 
       {:reply, {:ok, Poison.encode!(new_game)}, socket}
     else
