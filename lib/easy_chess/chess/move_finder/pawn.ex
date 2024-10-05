@@ -1,50 +1,52 @@
 defmodule EasyChess.MoveFinder.Pawn do
-  alias EasyChess.Chess.{Game, Piece, Move, MoveFinder}
+  alias EasyChess.Chess.{Game, Piece, Move}
+  alias EasyChess.Chess.MoveFinder.Helpers
 
   def valid_moves(game, %Piece{piece: :pawn} = pawn, index) do
     moves = []
 
-    move = single_move(game, index, pawn)
-    moves = if move != nil, do: [move | moves], else: moves
-
-    move = double_move(game, index, pawn)
-    moves = if move != nil, do: [move | moves], else: moves
-
-    move = right_diagonal_capture(game, index, pawn)
-    moves = if move != nil, do: [move | moves], else: moves
-
-    move = left_diagonal_capture(game, index, pawn)
-    moves = if move != nil, do: [move | moves], else: moves
-
-    move = en_passant_capture(game, index, pawn)
-    moves = if move != nil, do: [move | moves], else: moves
+    moves = moves ++ single_move(game, index, pawn)
+    moves = moves ++ double_move(game, index, pawn)
+    moves = moves ++ diagonal_capture(game, index, pawn)
+    moves = moves ++ en_passant_capture(game, index, pawn)
 
     moves
   end
 
   defp single_move(game, index, %Piece{color: color, piece: :pawn} = pawn) do
-    # Get the direction the pawn should move
+    {rank, file} = Helpers.rank_and_file(index)
+
     direction = pawn_direction(color)
 
-    # Get the index of the square in front of the pawn
-    single_forward_idx = index + 8 * direction
+    forward_rank = rank + direction
+
+    forward_idx = Helpers.index(forward_rank, file)
 
     is_valid =
-      MoveFinder.in_bounds?(single_forward_idx) and Game.at(game, single_forward_idx) == nil
+      Helpers.valid_position?(forward_idx, forward_rank, file) and
+        Game.at(game, forward_idx) == nil
 
-    # Check if the square in front of the pawn is empty
     if is_valid do
-      # Create a new move
-      %Move{from: index, to: single_forward_idx, piece: pawn}
+      [%Move{from: index, to: forward_idx, piece: pawn}]
+    else
+      []
     end
   end
 
   defp double_move(game, index, %Piece{color: color, piece: :pawn} = pawn) do
-    # Get the direction the pawn should move
+    {rank, file} = Helpers.rank_and_file(index)
+
     direction = pawn_direction(color)
 
-    # Get the index of the square two squares in front of the pawn
-    double_forward_idx = index + 16 * direction
+    # Calculate the double forward rank
+    double_forward_rank = rank + 2 * direction
+
+    double_forward_idx = Helpers.index(double_forward_rank, file)
+
+    # Calculate the single forward rank to check if the pawn can move two squares forward
+    single_forward_rank = rank + direction
+
+    single_forward_idx = Helpers.index(single_forward_rank, file)
 
     # Double jumping is allowed only if the pawn is in its starting position
     on_starting_rank =
@@ -53,69 +55,64 @@ defmodule EasyChess.MoveFinder.Pawn do
 
     # Check if the pawn can move two squares forward
     is_valid =
-      on_starting_rank and
-        MoveFinder.in_bounds?(double_forward_idx) and
+      Helpers.valid_position?(double_forward_idx, double_forward_rank, file) and
         Game.at(game, double_forward_idx) == nil and
-        single_move(game, index, pawn) != nil
+        Game.at(game, single_forward_idx) == nil and
+        on_starting_rank
 
     if is_valid do
-      %Move{from: index, to: double_forward_idx, piece: pawn}
+      [%Move{from: index, to: double_forward_idx, piece: pawn}]
+    else
+      []
     end
   end
 
-  defp right_diagonal_capture(game, index, %Piece{color: color, piece: :pawn} = pawn) do
-    # Get the direction the pawn should move
+  defp diagonal_capture(game, index, %Piece{color: color, piece: :pawn} = pawn) do
+    {rank, file} = Helpers.rank_and_file(index)
+
     direction = pawn_direction(color)
 
-    # Get the rank and file of the pawn
-    {rank, file} = MoveFinder.rank_and_file(index)
-
     forward_rank = rank + direction
+
+    # Calculate the right and left diagonal squares
     right_file = file + 1
+    right_idx = Helpers.index(forward_rank, right_file)
 
-    right_idx = MoveFinder.index(forward_rank, right_file)
+    left_file = file - 1
+    left_idx = Helpers.index(forward_rank, left_file)
 
-    # Check if the pawn can capture a piece to the right
-    is_valid =
-      MoveFinder.in_bounds?(right_idx) and
-        MoveFinder.valid_rank?(forward_rank) and
-        MoveFinder.valid_file?(right_file) and
+    is_valid_right =
+      Helpers.valid_position?(right_idx, forward_rank, right_file) and
         Game.at(game, right_idx) != nil and
         Game.at(game, right_idx).color != color
 
-    if is_valid do
-      %Move{from: index, to: right_idx, piece: pawn}
-    end
-  end
-
-  defp left_diagonal_capture(game, index, %Piece{color: color, piece: :pawn} = pawn) do
-    # Get the direction the pawn should move
-    direction = pawn_direction(color)
-
-    # Get the rank and file of the pawn
-    {rank, file} = MoveFinder.rank_and_file(index)
-
-    forward_rank = rank + direction
-    left_file = file - 1
-
-    left_idx = MoveFinder.index(forward_rank, left_file)
-
-    # Check if the pawn can capture a piece to the right
-    is_valid =
-      MoveFinder.in_bounds?(left_idx) and
-        MoveFinder.valid_rank?(forward_rank) and
-        MoveFinder.valid_file?(left_file) and
+    is_valid_left =
+      Helpers.valid_position?(left_idx, forward_rank, left_file) and
         Game.at(game, left_idx) != nil and
         Game.at(game, left_idx).color != color
 
-    if is_valid do
-      %Move{from: index, to: left_idx, piece: pawn}
+    moves = []
+
+    moves = moves ++ if is_valid_right do
+      [%Move{from: index, to: right_idx, piece: pawn}]
+    else
+      []
     end
+
+    moves = moves ++ if is_valid_left do
+      [%Move{from: index, to: left_idx, piece: pawn}]
+    else
+      []
+    end
+
+    moves
   end
 
   defp en_passant_capture(game, index, %Piece{color: color, piece: :pawn} = pawn) do
-    # Get the direction the pawn should move
+    {rank, file} = Helpers.rank_and_file(index)
+
     direction = pawn_direction(color)
+
     opponent_direction = direction * -1
 
     # Check the last move to see if it was a double move by an opponent's pawn
@@ -127,31 +124,38 @@ defmodule EasyChess.MoveFinder.Pawn do
         previous_move.from + 16 * opponent_direction == previous_move.to
 
     if is_double_pawn_move do
-      # Determine if the move landed to the left or right of the current pawn
-      one_left = index - 1 * direction
-      one_right = index + 1 * direction
+      left_file = file - 1
+      left_idx = Helpers.index(rank, left_file)
+
+      right_file = file + 1
+      right_idx = Helpers.index(rank, right_file)
+
 
       # Check if the pawn can capture en passant to the left
       is_valid_left =
-        MoveFinder.in_bounds?(one_left) and
-          Game.at(game, one_left) == previous_move.piece
+        Helpers.valid_position?(left_idx, rank, left_file) and
+          Game.at(game, left_idx) == previous_move.piece
 
       # Check if the pawn can capture en passant to the right
       is_valid_right =
-        MoveFinder.in_bounds?(one_right) and
-          Game.at(game, one_right) == previous_move.piece
+        Helpers.valid_position?(right_idx, rank, right_file) and
+          Game.at(game, right_idx) == previous_move.piece
 
       # Determine the destination square for the en passant capture
-      destination_right = index + 9 * direction
-      destination_left = index + 7 * direction
+      destination_left = Helpers.index(rank + direction, left_file)
+      destination_right = Helpers.index(rank + direction, right_file)
 
       if is_valid_left do
-        %Move{from: index, to: destination_left, piece: pawn}
+        [%Move{from: index, to: destination_left, piece: pawn}]
       else
         if is_valid_right do
-          %Move{from: index, to: destination_right, piece: pawn}
+          [%Move{from: index, to: destination_right, piece: pawn}]
+        else
+          []
         end
       end
+    else
+      []
     end
   end
 

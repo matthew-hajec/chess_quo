@@ -1,5 +1,6 @@
 defmodule EasyChess.MoveFinder.Knight do
-  alias EasyChess.Chess.{Game, Piece, Move, MoveFinder}
+  alias EasyChess.Chess.{Game, Piece, Move}
+  alias EasyChess.Chess.MoveFinder.Helpers
 
   def valid_moves(game, %Piece{piece: :knight} = knight, index) do
     moves = l_moves(game, index, knight)
@@ -28,7 +29,7 @@ defmodule EasyChess.MoveFinder.Knight do
 
       current_index = rank * 8 + file
 
-      if !MoveFinder.valid_file?(file) or !MoveFinder.valid_rank?(rank) do
+      if !Helpers.valid_position?(current_index, rank, file) do
         {:cont, acc}
       else
         case Game.at(game, current_index) do
