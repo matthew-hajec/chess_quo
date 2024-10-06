@@ -19,8 +19,11 @@ defmodule EasyChessWeb.GameController do
   def handle_get_game(conn, params) do
     code = params["code"]
     secret = conn.cookies["current_game_secret"]
-    # Role is not verified, so it CAN NOT be trusted
+    # Color and role are not verified, so it CAN NOT be trusted
+    # They should only be used for rendering the game page properly
+    color = conn.cookies["current_game_color"]
     role = role_from_string(conn.cookies["current_game_role"])
+
 
     cond do
       !EasyChess.Lobby.lobby_exists?(code) ->
@@ -34,18 +37,10 @@ defmodule EasyChessWeb.GameController do
         |> redirect(to: "/")
 
       true ->
-        case EasyChess.Chess.GamesManager.get_game(code) do
-          {:error, _} ->
-            conn
-            |> put_flash(:error, "Error loading game state.")
-            |> redirect(to: "/")
-
-          {:ok, game} ->
-            conn
-            |> assign(:role, role)
-            |> assign(:game, game)
-            |> render(:game)
-        end
+        conn
+        |> assign(:color, color)
+        |> assign(:role, role)
+        |> render(:game)
     end
   end
 

@@ -23,15 +23,28 @@
 
 <div class="relative w-4/5 max-w-screen-lg mx-auto" id="board">
   <div class="grid grid-cols-8 grid-rows-8 gap-0 w-full h-full aspect-ratio-1x1">
-    <%= for i <- 0..63 do %>
-      <% row = div(i, 8) %> <% col = rem(i, 8) %>
-      <% is_white_square = rem(row + col, 2) == 1 %> <% base_class =
-        "h-full w-full flex items-center justify-center" %>
-      <% color_class =
-        if is_white_square,
-          do: "bg-white hover:bg-gray-300",
-          else: "bg-gray-800 hover:bg-gray-600" %>
-      <div class={[base_class, color_class]} data-square-index={i}></div>
+    <% rows = if @color == "white", do: 7..0//-1, else: 0..7 %>
+    <% cols = if @color == "white", do: 0..7, else: 7..0//-1 %>
+
+    <%= for row <- rows do %>
+      <%= for col <- cols do %>
+        <% board_row = row %>
+        <% board_col = col %>
+        <% i = board_row * 8 + board_col %>
+        <% is_white_square = rem(board_row + board_col, 2) == 1 %>
+        <% base_class = "h-full w-full flex items-center justify-center" %>
+        <% color_class =
+          if is_white_square,
+            do: "bg-white hover:bg-gray-300",
+            else: "bg-gray-800 hover:bg-gray-600" %>
+        <div class={[base_class, color_class]} data-square-index={i}>
+          <!-- You can remove the line below after testing -->
+          <%= "#{i} #{row} #{col}" %>
+        </div>
+      <% end %>
     <% end %>
   </div>
 </div>
+
+
+
