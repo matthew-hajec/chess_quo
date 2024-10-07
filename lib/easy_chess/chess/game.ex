@@ -82,7 +82,8 @@ defmodule EasyChess.Chess.Game do
                   # h8
                   %Piece{color: :black, piece: :rook}
                 ],
-            previous_move: nil
+            previous_move: nil,
+            move_history: []
 
   defimpl Poison.Decoder do
     def decode(
@@ -137,11 +138,14 @@ defmodule EasyChess.Chess.Game do
       new_board
     end
 
+    move_history = [move | game.move_history]
+
     %EasyChess.Chess.Game{
       game
       | board: new_board,
         turn: next_turn(game.turn),
-        previous_move: move
+        previous_move: move,
+        move_history: move_history
     }
   end
 

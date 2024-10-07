@@ -136,5 +136,15 @@ defmodule GameTest do
       # The pawn at e4 should be captured
       assert nil == Game.at(game, ~B"e4")
     end
+
+    test "multiple moves are appended to the move history" do
+      game = Game.new()
+      move1 = %Move{from: ~B"e2", to: ~B"e4", piece: %Piece{color: :white, piece: :pawn}}
+      move2 = %Move{from: ~B"e7", to: ~B"e5", piece: %Piece{color: :black, piece: :pawn}}
+      new_game = Game.apply_move(game, move1)
+      new_game = Game.apply_move(new_game, move2)
+
+      assert [move2, move1] == new_game.move_history
+    end
   end
 end
