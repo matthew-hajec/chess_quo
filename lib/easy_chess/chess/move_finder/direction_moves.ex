@@ -21,7 +21,7 @@ defmodule EasyChess.Chess.MoveFinder.DirectionMoves do
             {:halt, acc}
 
           %Piece{color: color} when color != piece.color ->
-            {:halt, [Move.new(index, current_index, piece) | acc]}
+            {:halt, [Move.new(index, current_index, piece, current_index) | acc]}
         end
       end
     end)

@@ -128,15 +128,16 @@ defmodule EasyChess.Chess.Game do
   end
 
   def apply_move(game, move) do
-    new_board = List.replace_at(game.board, move.from, nil)
-    new_board = List.replace_at(new_board, move.to, move.piece)
-
     # If the `captures` field is set, remove the captured piece from the board
     new_board = if move.captures != nil do
-      List.replace_at(new_board, move.captures, nil)
+      List.replace_at(game.board, move.captures, nil)
     else
-      new_board
+      game.board
     end
+
+    new_board = List.replace_at(new_board, move.from, nil)
+    new_board = List.replace_at(new_board, move.to, move.piece)
+
 
     move_history = [move | game.move_history]
 
