@@ -2,16 +2,18 @@ defmodule EasyChess.Chess.Move do
   @derive [Poison.Encoder]
   defstruct from: 0,
             to: 0,
-            piece: nil
+            piece: nil,
+            captures: nil # Optional, will be the integer index of the piece captured
 
   defimpl Poison.Decoder do
-    def decode(%EasyChess.Chess.Move{from: from, to: to, piece: piece}, _opts) do
+    def decode(%EasyChess.Chess.Move{from: from, to: to, piece: piece, captures: captures}, _opts) do
       piece = Poison.decode!(Poison.encode!(piece), as: %EasyChess.Chess.Piece{})
 
       %EasyChess.Chess.Move{
         from: from,
         to: to,
-        piece: piece
+        piece: piece,
+        captures: captures
       }
     end
   end
@@ -19,7 +21,7 @@ defmodule EasyChess.Chess.Move do
   @doc """
   Creates a new move.
   """
-  def new(from, to, piece) do
-    %EasyChess.Chess.Move{from: from, to: to, piece: piece}
+  def new(from, to, piece, captures \\ nil) do
+    %EasyChess.Chess.Move{from: from, to: to, piece: piece, captures: captures}
   end
 end
