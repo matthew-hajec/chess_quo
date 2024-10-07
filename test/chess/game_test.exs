@@ -113,5 +113,28 @@ defmodule GameTest do
       assert nil == Game.at(new_game, ~B"a2")
       assert nil == Game.at(new_game, ~B"b7")
     end
+
+    test "capture move without landing on captured square" do
+      # This is the case for en passant
+      board = List.duplicate(nil, 64)
+
+      # Set up the game for an en passant move
+      board = List.replace_at(board, ~B"e2", %Piece{color: :white, piece: :pawn})
+      board = List.replace_at(board, ~B"d4", %Piece{color: :black, piece: :pawn})
+
+      # Create a new game with the board set up for en passant
+      game = %Game{board: board, turn: :white, previous_move: nil}
+
+      # Apply the double pawn move
+      double_move = %Move{from: ~B"e2", to: ~B"e4", piece: %Piece{color: :white, piece: :pawn}}
+      game = Game.apply_move(game, double_move)
+
+      # Apply the en passant move
+      en_passant = %Move{from: ~B"d4", to: ~B"e3", piece: %Piece{color: :white, piece: :pawn}, captures: ~B"e4"}
+      game = Game.apply_move(game, en_passant)
+
+      # The pawn at e4 should be captured
+      assert nil == Game.at(game, ~B"e4")
+    end
   end
 end

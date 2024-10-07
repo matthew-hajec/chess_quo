@@ -130,6 +130,13 @@ defmodule EasyChess.Chess.Game do
     new_board = List.replace_at(game.board, move.from, nil)
     new_board = List.replace_at(new_board, move.to, move.piece)
 
+    # If the `captures` field is set, remove the captured piece from the board
+    new_board = if move.captures != nil do
+      List.replace_at(new_board, move.captures, nil)
+    else
+      new_board
+    end
+
     %EasyChess.Chess.Game{
       game
       | board: new_board,
