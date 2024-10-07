@@ -94,13 +94,13 @@ defmodule EasyChess.MoveFinder.Pawn do
     moves = []
 
     moves = moves ++ if is_valid_right do
-      [%Move{from: index, to: right_idx, piece: pawn}]
+      [%Move{from: index, to: right_idx, piece: pawn, captures: right_idx}]
     else
       []
     end
 
     moves = moves ++ if is_valid_left do
-      [%Move{from: index, to: left_idx, piece: pawn}]
+      [%Move{from: index, to: left_idx, piece: pawn, captures: left_idx}]
     else
       []
     end
@@ -146,10 +146,10 @@ defmodule EasyChess.MoveFinder.Pawn do
       destination_right = Helpers.index(rank + direction, right_file)
 
       if is_valid_left do
-        [%Move{from: index, to: destination_left, piece: pawn}]
+        [%Move{from: index, to: destination_left, piece: pawn, captures: left_idx}]
       else
         if is_valid_right do
-          [%Move{from: index, to: destination_right, piece: pawn}]
+          [%Move{from: index, to: destination_right, piece: pawn, captures: right_idx}]
         else
           []
         end
