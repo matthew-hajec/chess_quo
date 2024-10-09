@@ -92,6 +92,7 @@ defmodule EasyChessWeb.LobbyController do
     password = params["lobby_password"]
 
     with {:ok, true} <- EasyChess.Lobby.correct_password?(code, password),
+         :ok <- EasyChess.Lobby.set_guest_joined(code),
          {:ok, guest_secret} <- EasyChess.Lobby.get_secret(code, :guest),
          {:ok, guest_color} <- EasyChess.Lobby.get_color(code, :guest) do
       conn
@@ -103,6 +104,11 @@ defmodule EasyChessWeb.LobbyController do
         conn
         |> put_flash(:error, "Invalid Password")
         |> redirect(to: "/lobby/join/#{code}")
+
+      {:error, :already_joined} ->
+        conn
+        |> put_flash(:error, "A guest has already joined this lobby from another device.")
+        |> redirect(to: "/")
 
       _ ->
         conn

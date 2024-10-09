@@ -54,6 +54,25 @@ defmodule EasyChess.Lobby do
     end
   end
 
+  def set_guest_joined(code) do
+    # Use a transaction to set the guest as joined
+    # and expire the keys after 1 hour
+    case Redix.transaction_pipeline(:redix, [
+           ["SETNX", "lobby:#{code}:guest_joined", "1"],
+           ["EXPIRE", "lobby:#{code}:guest_joined", @lobby_expire_seconds]
+         ]) do
+      {:ok, [1, 1]} ->
+        :ok
+
+      {:ok, [0, _]} ->
+        {:error, :already_joined}
+
+      {:error, reason} ->
+        Logger.error("Failed to set guest as joined: #{inspect(reason)}")
+        {:error, reason}
+    end
+  end
+
   def is_valid_secret?(code, :host, secret) do
     case Redix.command(:redix, ["GET", "lobby:#{code}:host_secret"]) do
       {:ok, value} ->
