@@ -69,6 +69,12 @@ if (isGamePage()) {
   }
 
   function renderGameState(gameState) {
+    // Change the turn indicator
+    const turnIndicator = document.querySelector("#current-turn");
+    if (turnIndicator) {
+      turnIndicator.innerHTML = gameState.turn;
+    }
+
     for (let i = 0; i < gameState.board.length; i++) {
       const piece = gameState.board[i];
       const square = document.querySelector(`[data-square-index="${i}"]`);
@@ -84,12 +90,6 @@ if (isGamePage()) {
         img.style.height = "70%";
 
         square.appendChild(img);
-      }
-
-      // Change the turn indicator
-      const turnIndicator = document.querySelector("#current-turn");
-      if (turnIndicator) {
-        turnIndicator.innerHTML = gameState.turn;
       }
     }
   }
@@ -171,7 +171,6 @@ if (isGamePage()) {
 
   // Handle game state updates
   channel.on("game_state", resp => {
-    console.log("Received game state", resp.game);
     gameState = JSON.parse(resp.game);
     console.log("Received game state", gameState)
     renderGameState(gameState);
