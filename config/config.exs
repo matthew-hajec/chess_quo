@@ -16,7 +16,7 @@ config :easy_chess, EasyChessWeb.Endpoint,
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: EasyChessWeb.ErrorHTML, json: EasyChessWeb.ErrorJSON],
-    layout: false
+    layout: {EasyChessWeb.Layouts, :error}
   ],
   pubsub_server: EasyChess.PubSub,
   live_view: [signing_salt: "TQ82Aq/K"]

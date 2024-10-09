@@ -12,7 +12,7 @@ config :easy_chess, EasyChessWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4001],
   check_origin: false,
   code_reloader: true,
-  debug_errors: true,
+  debug_errors: false,
   secret_key_base: "XObXDptGG4ReNsGUqZEj9DpsPEdem+z8TrxCgUayReUhxHoBiHGyMkAQJ5p3bD8P",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:easy_chess, ~w(--sourcemap=inline --watch)]},
