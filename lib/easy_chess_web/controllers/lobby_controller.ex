@@ -42,7 +42,8 @@ defmodule EasyChessWeb.LobbyController do
         |> redirect(to: "/play/#{code}")
 
       {:error, reason} ->
-        Logger.error("Error creating lobby: #{inspect reason}")
+        Logger.error("Error creating lobby: #{inspect(reason)}")
+
         conn
         |> put_flash(:error, "Error creating lobby.")
         |> redirect(to: "/lobby/create")
@@ -62,7 +63,8 @@ defmodule EasyChessWeb.LobbyController do
         |> redirect(to: "/")
 
       {:error, reason} ->
-        Logger.error("Error checking lobby existence: #{inspect reason}")
+        Logger.error("Error checking lobby existence: #{inspect(reason)}")
+
         conn
         |> put_flash(:error, "Error checking lobby existence.")
         |> redirect(to: "/")

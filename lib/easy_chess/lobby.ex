@@ -48,9 +48,8 @@ defmodule EasyChess.Lobby do
         # If the code already exists, try a new code.
         create_lobby(password, host_color)
 
-
       {:error, reason} ->
-        Logger.error("Failed to create lobby: #{inspect reason}")
+        Logger.error("Failed to create lobby: #{inspect(reason)}")
         {:error, reason}
     end
   end

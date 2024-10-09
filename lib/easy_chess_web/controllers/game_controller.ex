@@ -36,7 +36,8 @@ defmodule EasyChessWeb.GameController do
       |> render(:game)
     else
       {:error, reason} ->
-        Logger.error("Failed to get game: #{inspect reason}")
+        Logger.error("Failed to get game: #{inspect(reason)}")
+
         conn
         |> put_flash(:error, "Failed to join game.")
         |> redirect(to: "/")
