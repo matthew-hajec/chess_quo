@@ -1,19 +1,35 @@
-<.flash_group flash={@flash} />
-<h1 class="text-5xl">Join Lobby</h1>
 
-<form method="POST">
-  <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
-  <div class="pt-8">
-    <label for="lobby_password">Lobby password:</label>
-    <input
-      id="lobby_password"
-      name="lobby_password"
-      class="bg-slate-200 rounded px-3 py-2"
-      placeholder="Password"
-    />
-  </div>
+<!-- Form Container -->
+<div class="max-w-lg w-full mx-auto bg-white p-8 rounded-lg shadow-lg">
 
-  <div class="pt-8">
-    <button class="cursor-pointer rounded bg-slate-200 px-3 py-2 text-lg">Join Lobby</button>
-  </div>
-</form>
+
+  <!-- Page Header -->
+  <h1 class="text-3xl md:text-5xl font-bold text-center text-gray-800 mb-4">Join Lobby</h1>
+  <p class="text-lg text-center text-gray-600 mb-6">Enter the lobby password to join an existing game.</p>
+
+  <!-- Join Lobby Form -->
+  <form method="POST" class="space-y-6">
+    <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
+
+    <!-- Lobby Password Input -->
+    <div>
+      <label for="lobby_password" class="block text-lg font-medium text-gray-700 mb-2">Lobby Password:</label>
+      <input
+        id="lobby_password"
+        name="lobby_password"
+        class="block w-full bg-slate-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder="Enter lobby password"
+      />
+    </div>
+
+    <!-- Join Lobby Button -->
+    <div>
+      <button
+        type="submit"
+        class="w-full cursor-pointer rounded bg-blue-500 hover:bg-blue-600 text-white font-medium px-3 py-2"
+      >
+        Join Lobby
+      </button>
+    </div>
+  </form>
+</div>
