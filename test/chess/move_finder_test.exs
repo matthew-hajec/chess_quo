@@ -116,9 +116,9 @@ defmodule MoveFinderTest do
       valid_moves =
         Enum.sort_by(
           [
-            Move.new(~B"a3", ~B"b4", Piece.new(:white, :pawn)),
+            Move.new(~B"a3", ~B"b4", Piece.new(:white, :pawn), ~B"b4"),
             Move.new(~B"a3", ~B"a4", Piece.new(:white, :pawn)),
-            Move.new(~B"b4", ~B"a3", Piece.new(:black, :pawn)),
+            Move.new(~B"b4", ~B"a3", Piece.new(:black, :pawn), ~B"a3"),
             Move.new(~B"b4", ~B"b3", Piece.new(:black, :pawn)),
             Move.new(~B"h3", ~B"h2", Piece.new(:black, :pawn))
           ],
@@ -169,7 +169,7 @@ defmodule MoveFinderTest do
         Enum.sort_by(
           [
             # En passant capture
-            Move.new(~B"b4", ~B"a3", Piece.new(:black, :pawn)),
+            Move.new(~B"b4", ~B"a3", Piece.new(:black, :pawn), ~B"a4"),
 
             # White pawn forward
             Move.new(~B"a4", ~B"a5", Piece.new(:white, :pawn)),
@@ -199,7 +199,7 @@ defmodule MoveFinderTest do
         Enum.sort_by(
           [
             # En passant capture
-            Move.new(~B"g5", ~B"h6", Piece.new(:white, :pawn)),
+            Move.new(~B"g5", ~B"h6", Piece.new(:white, :pawn), ~B"h5"),
 
             # Black pawn forward
             Move.new(~B"h5", ~B"h4", Piece.new(:black, :pawn)),
@@ -342,19 +342,30 @@ defmodule MoveFinderTest do
         ])
 
       found_moves = MoveFinder.find_valid_moves(game)
+      found_rook_moves =
+        Enum.filter(found_moves, fn move ->
+          move.piece == Piece.new(:white, :rook)
+        end)
 
       # Define valid vertical capture moves
-      valid_moves = [
-        Move.new(~B"e6", ~B"e8", Piece.new(:white, :rook)),
-        Move.new(~B"e6", ~B"b6", Piece.new(:white, :rook)),
-        Move.new(~B"e6", ~B"e5", Piece.new(:white, :rook)),
-        Move.new(~B"e6", ~B"f6", Piece.new(:white, :rook))
-      ]
+      valid_moves = Enum.sort_by([
+        # Up
+        Move.new(~B"e6", ~B"e7", Piece.new(:white, :rook)),
+        Move.new(~B"e6", ~B"e8", Piece.new(:white, :rook), ~B"e8"),
 
-      # Ensure all valid moves are in the found_moves
-      assert Enum.all?(valid_moves, fn valid_move ->
-               valid_move in found_moves
-             end)
+        # Down
+        Move.new(~B"e6", ~B"e5", Piece.new(:white, :rook), ~B"e5"),
+
+        # Left
+        Move.new(~B"e6", ~B"d6", Piece.new(:white, :rook)),
+        Move.new(~B"e6", ~B"c6", Piece.new(:white, :rook)),
+        Move.new(~B"e6", ~B"b6", Piece.new(:white, :rook), ~B"b6"),
+
+        # Right
+        Move.new(~B"e6", ~B"f6", Piece.new(:white, :rook), ~B"f6"),
+        ], & &1.to)
+
+      assert valid_moves == found_rook_moves
     end
 
     test "rooks cannot move past opponent pieces" do
@@ -493,19 +504,30 @@ defmodule MoveFinderTest do
         ])
 
       found_moves = MoveFinder.find_valid_moves(game)
+      found_bishop_moves =
+        Enum.filter(found_moves, fn move ->
+          move.piece == Piece.new(:white, :bishop)
+        end)
 
-      # Define valid diagonal capture moves
-      valid_moves = [
-        Move.new(~B"d4", ~B"f2", Piece.new(:white, :bishop)),
-        Move.new(~B"d4", ~B"c3", Piece.new(:white, :bishop)),
-        Move.new(~B"d4", ~B"f6", Piece.new(:white, :bishop)),
-        Move.new(~B"d4", ~B"b6", Piece.new(:white, :bishop))
-      ]
 
-      # Ensure all valid moves are in the found_moves
-      assert Enum.all?(valid_moves, fn valid_move ->
-               valid_move in found_moves
-             end)
+      valid_moves = Enum.sort_by([
+        # Up/Right
+        Move.new(~B"d4", ~B"e5", Piece.new(:white, :bishop)),
+        Move.new(~B"d4", ~B"f6", Piece.new(:white, :bishop), ~B"f6"),
+
+        # Down/Right
+        Move.new(~B"d4", ~B"e3", Piece.new(:white, :bishop)),
+        Move.new(~B"d4", ~B"f2", Piece.new(:white, :bishop), ~B"f2"),
+
+        # Up/Left
+        Move.new(~B"d4", ~B"c5", Piece.new(:white, :bishop)),
+        Move.new(~B"d4", ~B"b6", Piece.new(:white, :bishop), ~B"b6"),
+
+        # Down/Left
+        Move.new(~B"d4", ~B"c3", Piece.new(:white, :bishop), ~B"c3"),
+      ], & &1.to)
+
+      assert valid_moves == found_bishop_moves
     end
 
     test "bishops can not jump over opponent pieces" do
