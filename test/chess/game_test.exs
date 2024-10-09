@@ -130,7 +130,13 @@ defmodule GameTest do
       game = Game.apply_move(game, double_move)
 
       # Apply the en passant move
-      en_passant = %Move{from: ~B"d4", to: ~B"e3", piece: %Piece{color: :white, piece: :pawn}, captures: ~B"e4"}
+      en_passant = %Move{
+        from: ~B"d4",
+        to: ~B"e3",
+        piece: %Piece{color: :white, piece: :pawn},
+        captures: ~B"e4"
+      }
+
       game = Game.apply_move(game, en_passant)
 
       # The pawn at e4 should be captured

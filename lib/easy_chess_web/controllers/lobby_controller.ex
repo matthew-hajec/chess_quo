@@ -20,7 +20,8 @@ defmodule EasyChessWeb.LobbyController do
 
   def post_create_lobby(conn, params) do
     case Tarams.cast(params, @post_create_lobby_params_schema) do
-      {:ok, _} -> handle_post_create_lobby(conn, params)
+      {:ok, _} ->
+        handle_post_create_lobby(conn, params)
 
       {:error, _} ->
         conn
@@ -49,13 +50,15 @@ defmodule EasyChessWeb.LobbyController do
   def get_join_lobby(conn, params) do
     code = params["code"]
 
-    if !EasyChess.Lobby.lobby_exists?(code) do
-      conn
-      |> put_flash(:error, "No lobby exists with the given code.")
-      |> redirect(to: "/")
-    end
+    case EasyChess.Lobby.lobby_exists?(code) do
+      {:ok, true} ->
+        render(conn, :join_lobby)
 
-    render(conn, :join_lobby)
+      {:ok, false} ->
+        conn
+        |> put_flash(:error, "No lobby exists with the given code.")
+        |> redirect(to: "/")
+    end
   end
 
   @post_join_lobby_params_schema %{
@@ -64,7 +67,8 @@ defmodule EasyChessWeb.LobbyController do
   }
   def post_join_lobby(conn, params) do
     case Tarams.cast(params, @post_join_lobby_params_schema) do
-      {:ok, _} -> handle_post_join_lobby(conn, params)
+      {:ok, _} ->
+        handle_post_join_lobby(conn, params)
 
       {:error, _} ->
         conn
@@ -77,22 +81,23 @@ defmodule EasyChessWeb.LobbyController do
     code = params["code"]
     password = params["lobby_password"]
 
-    case EasyChess.Lobby.compare_password(code, password) do
-      true ->
-        {:ok, _hs, gs} = EasyChess.Lobby.get_lobby_secrets(code)
-        {:ok, host_color} = EasyChess.Lobby.get_host_color(code)
-
-        guest_color = if host_color == "white", do: "black", else: "white"
-
-        conn
-        |> help_set_game_cookies("guest", code, gs, guest_color)
-        |> put_flash(:info, "Lobby Joined")
-        |> redirect(to: "/play/#{code}")
-
-      false ->
+    with {:ok, true} <- EasyChess.Lobby.correct_password?(code, password),
+         {:ok, guest_secret} <- EasyChess.Lobby.get_secret(code, :guest),
+         {:ok, guest_color} <- EasyChess.Lobby.get_color(code, :guest) do
+      conn
+      |> help_set_game_cookies("guest", code, guest_secret, guest_color)
+      |> put_flash(:info, "Lobby Joined")
+      |> redirect(to: "/play/#{code}")
+    else
+      {:ok, false} ->
         conn
         |> put_flash(:error, "Invalid Password")
         |> redirect(to: "/lobby/join/#{code}")
+
+      _ ->
+        conn
+        |> put_flash(:error, "Error joining lobby")
+        |> redirect(to: "/")
     end
   end
 end

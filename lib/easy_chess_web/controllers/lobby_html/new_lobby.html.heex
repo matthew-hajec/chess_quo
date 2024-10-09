@@ -1,15 +1,17 @@
 <!-- Form Container -->
 <div class="max-w-lg w-full mx-auto bg-white p-8 rounded-lg shadow-lg">
   <!-- Page Header -->
-  <h1 class="text-3xl md:text-5xl font-bold text-center text-gray-800 mb-6">Create a New Lobby</h1>
-
+  <h1 class="text-3xl md:text-5xl font-bold text-center text-gray-800 mb-6">
+    Create a New Lobby
+  </h1>
   <!-- New Lobby Form -->
   <form method="POST" class="space-y-6">
     <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
-
     <!-- Host Color Selection -->
     <div>
-      <label for="host_color" class="block text-lg font-medium text-gray-700 mb-2">Choose your starting color:</label>
+      <label for="host_color" class="block text-lg font-medium text-gray-700 mb-2">
+        Choose your starting color:
+      </label>
       <select
         id="host_color"
         name="host_color"
@@ -19,10 +21,11 @@
         <option value="black">Black</option>
       </select>
     </div>
-
     <!-- Lobby Password Input -->
     <div>
-      <label for="lobby_password" class="block text-lg font-medium text-gray-700 mb-2">Set a lobby password:</label>
+      <label for="lobby_password" class="block text-lg font-medium text-gray-700 mb-2">
+        Set a lobby password:
+      </label>
       <input
         id="lobby_password"
         name="lobby_password"
@@ -30,7 +33,6 @@
         value={Enum.random(100_000..999_999)}
       />
     </div>
-
     <!-- Create Lobby Button -->
     <div>
       <button
@@ -39,7 +41,9 @@
       >
         Create Lobby
       </button>
-      <p class="text-sm text-gray-600 mt-2">Note: Your lobby code will be available upon creation.</p>
+      <p class="text-sm text-gray-600 mt-2">
+        Note: Your lobby code will be available upon creation.
+      </p>
     </div>
   </form>
 </div>

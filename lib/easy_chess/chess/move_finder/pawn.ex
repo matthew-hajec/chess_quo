@@ -93,17 +93,21 @@ defmodule EasyChess.MoveFinder.Pawn do
 
     moves = []
 
-    moves = moves ++ if is_valid_right do
-      [%Move{from: index, to: right_idx, piece: pawn, captures: right_idx}]
-    else
-      []
-    end
+    moves =
+      moves ++
+        if is_valid_right do
+          [%Move{from: index, to: right_idx, piece: pawn, captures: right_idx}]
+        else
+          []
+        end
 
-    moves = moves ++ if is_valid_left do
-      [%Move{from: index, to: left_idx, piece: pawn, captures: left_idx}]
-    else
-      []
-    end
+    moves =
+      moves ++
+        if is_valid_left do
+          [%Move{from: index, to: left_idx, piece: pawn, captures: left_idx}]
+        else
+          []
+        end
 
     moves
   end
@@ -129,7 +133,6 @@ defmodule EasyChess.MoveFinder.Pawn do
 
       right_file = file + 1
       right_idx = Helpers.index(rank, right_file)
-
 
       # Check if the pawn can capture en passant to the left
       is_valid_left =

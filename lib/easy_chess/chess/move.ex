@@ -3,7 +3,8 @@ defmodule EasyChess.Chess.Move do
   defstruct from: 0,
             to: 0,
             piece: nil,
-            captures: nil # Optional, will be the integer index of the piece captured
+            # Optional, will be the integer index of the piece captured
+            captures: nil
 
   defimpl Poison.Decoder do
     def decode(%EasyChess.Chess.Move{from: from, to: to, piece: piece, captures: captures}, _opts) do

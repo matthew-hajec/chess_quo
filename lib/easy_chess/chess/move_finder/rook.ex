@@ -1,6 +1,7 @@
 defmodule EasyChess.MoveFinder.Rook do
   alias EasyChess.Chess.Piece
   alias EasyChess.Chess.MoveFinder.DirectionMoves
+
   def valid_moves(game, %Piece{piece: :rook} = rook, index) do
     moves = []
 

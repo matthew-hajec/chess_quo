@@ -7,7 +7,8 @@ defmodule EasyChessWeb.GameController do
 
   def get_game(conn, params) do
     case Tarams.cast(params, @get_game_params_schema) do
-      {:ok, _} -> handle_get_game(conn, params)
+      {:ok, _} ->
+        handle_get_game(conn, params)
 
       {:error, _} ->
         conn
@@ -24,24 +25,19 @@ defmodule EasyChessWeb.GameController do
     color = conn.cookies["current_game_color"]
     role = role_from_string(conn.cookies["current_game_role"])
 
-
-    cond do
-      !EasyChess.Lobby.lobby_exists?(code) ->
+    with {:ok, true} <- EasyChess.Lobby.lobby_exists?(code),
+         {:ok, true} <- EasyChess.Lobby.is_valid_secret?(code, role, secret) do
+      conn
+      # Disable the layout
+      |> put_layout(false)
+      |> assign(:color, color)
+      |> assign(:role, role)
+      |> render(:game)
+    else
+      _ ->
         conn
-        |> put_flash(:error, "No lobby exists with the given code.")
+        |> put_flash(:error, "Invalid game code.")
         |> redirect(to: "/")
-
-      !EasyChess.Lobby.is_valid_secret?(code, role, secret) ->
-        conn
-        |> put_flash(:error, "Invalid game secret.")
-        |> redirect(to: "/")
-
-      true ->
-        conn
-        |> put_layout(false) # Disable the layout
-        |> assign(:color, color)
-        |> assign(:role, role)
-        |> render(:game)
     end
   end
 
