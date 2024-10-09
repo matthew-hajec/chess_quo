@@ -43,7 +43,15 @@ if (isGamePage()) {
   // Join the game channel using the current game code from cookies
   const channel = socket.channel(`room:${cookies.current_game_code}`, { params: cookies });
   channel.join()
-    .receive("ok", resp => console.log("Joined successfully", resp))
+    .receive("ok", resp => {
+      console.log("Joined successfully", resp);
+      // Delete loader
+      document.querySelector("#loader").style.display = "none";
+
+      // Set loaded to display the game board
+      document.querySelector("#loaded").style.display = "block";
+
+    })
     .receive("error", resp => console.log("Unable to join", resp));
 
   const clientColor = cookies.current_game_color
@@ -72,6 +80,8 @@ if (isGamePage()) {
 
         const img = document.createElement("img");
         img.src = img_url;
+        img.style.width = "70%";
+        img.style.height = "70%";
 
         square.appendChild(img);
       }
@@ -139,7 +149,7 @@ if (isGamePage()) {
     const squareIndex = square.getAttribute("data-square-index");
     const piece = gameState.board[squareIndex];
 
-    isPossibleMove = (selectedSquareIdx !== null && ev.target.classList.contains("valid-move"));
+    isPossibleMove = (selectedSquareIdx !== null && square.classList.contains("valid-move"));
 
     if (isPossibleMove) {
       // Had a square selected and clicked on a valid move
