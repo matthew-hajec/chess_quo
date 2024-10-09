@@ -4,9 +4,14 @@
 
 /* This file is for your main application CSS */
 html, body {
-    height: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-   background: linear-gradient(to bottom right, #e0f7fa, #ffecb3);
+    background: linear-gradient(to bottom right, #e0f7fa, #ffecb3);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
 }

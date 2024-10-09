@@ -38,6 +38,7 @@ defmodule EasyChessWeb.GameController do
 
       true ->
         conn
+        |> put_layout(false) # Disable the layout
         |> assign(:color, color)
         |> assign(:role, role)
         |> render(:game)

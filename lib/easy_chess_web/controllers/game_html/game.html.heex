@@ -1,4 +1,3 @@
-<.flash_group flash={@flash} />
 <style>
   .aspect-ratio-1x1 {
     aspect-ratio: 1 / 1;
@@ -13,36 +12,41 @@
   }
 </style>
 
-<p>
-  It is <span id="current-turn"></span>'s turn.
-</p>
+<!-- Header Section -->
+<div class="max-w-screen-lg mx-auto mt-8 mb-4 text-center">
+  <h1 class="text-3xl font-bold text-gray-800">Chess Game</h1>
+  <p class="text-lg text-gray-600 mt-2">It's <span id="current-turn" class="font-semibold"></span>'s turn.</p>
+  <p class="text-lg text-gray-600">You are playing as <span class="font-semibold"><%= @role %></span></p>
+</div>
 
-<p>You are the <%= @role %></p>
+<!-- Game Board Container -->
+<div class="flex justify-center items-center">
+  <div class="relative w-full max-w-2xl px-4" id="board">
+    <div class="grid grid-cols-8 grid-rows-8 gap-0 w-full h-full aspect-ratio-1x1">
+      <% rows = if @color == "white", do: 7..0//-1, else: 0..7 %>
+      <% cols = if @color == "white", do: 0..7, else: 7..0//-1 %>
 
-<h1>Game Board:</h1>
-
-<div class="relative w-4/5 max-w-screen-lg mx-auto" id="board">
-  <div class="grid grid-cols-8 grid-rows-8 gap-0 w-full h-full aspect-ratio-1x1">
-    <% rows = if @color == "white", do: 7..0//-1, else: 0..7 %>
-    <% cols = if @color == "white", do: 0..7, else: 7..0//-1 %>
-
-    <%= for row <- rows do %>
-      <%= for col <- cols do %>
-        <% board_row = row %>
-        <% board_col = col %>
-        <% i = board_row * 8 + board_col %>
-        <% is_white_square = rem(board_row + board_col, 2) == 1 %>
-        <% base_class = "h-full w-full flex items-center justify-center" %>
-        <% color_class =
-          if is_white_square,
-            do: "bg-white hover:bg-gray-300",
-            else: "bg-gray-800 hover:bg-gray-600" %>
-        <div class={[base_class, color_class]} data-square-index={i}>
-        </div>
+      <%= for row <- rows do %>
+        <%= for col <- cols do %>
+          <% board_row = row %>
+          <% board_col = col %>
+          <% i = board_row * 8 + board_col %>
+          <% is_white_square = rem(board_row + board_col, 2) == 1 %>
+          <% base_class = "h-full w-full flex items-center justify-center text-2xl" %>
+          <% color_class =
+            if is_white_square,
+              do: "bg-green-200 hover:bg-green-300",
+              else: "bg-green-700 hover:bg-green-600" %>
+          <div class={[base_class, color_class]} data-square-index={i}>
+          </div>
+        <% end %>
       <% end %>
-    <% end %>
+    </div>
   </div>
 </div>
 
-
-
+<!-- Footer with Controls -->
+<div class="max-w-screen-lg mx-auto mt-4 flex justify-center space-x-4 mb-8">
+  <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Resign</button>
+  <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Offer Draw</button>
+</div>
