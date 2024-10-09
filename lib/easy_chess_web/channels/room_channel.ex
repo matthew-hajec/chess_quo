@@ -102,10 +102,11 @@ defmodule EasyChessWeb.RoomChannel do
 
       case game_condition do
         :checkmate ->
-          broadcast!(socket, "game_over", %{winner: player_color})
+          player_color_uc = String.capitalize(player_color)
+          broadcast!(socket, "game_over", %{reason: "#{player_color_uc} checkmated!"})
 
         :stalemate ->
-          broadcast!(socket, "game_over", %{winner: "draw"})
+          broadcast!(socket, "game_over", %{reason: "Draw"})
 
         _ ->
           nil

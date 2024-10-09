@@ -179,6 +179,6 @@ if (isGamePage()) {
   // Handle game over events
   channel.on("game_over", resp => {
     console.log("Game over", resp);
-    alert("Game over! " + resp.winner);
+    alert("Game over! " + resp.reason);
   });
 }
