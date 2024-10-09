@@ -35,6 +35,9 @@ defmodule EasyChessWeb.GameController do
       |> assign(:role, role)
       |> render(:game)
     else
+      {:ok, false} ->
+        conn
+        |> redirect(to: "/lobby/join/#{code}")
       {:error, reason} ->
         Logger.error("Failed to get game: #{inspect(reason)}")
 
