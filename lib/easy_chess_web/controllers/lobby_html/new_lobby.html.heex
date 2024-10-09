@@ -1,29 +1,45 @@
-<.flash_group flash={@flash} />
-<h1 class="text-5xl">New Lobby</h1>
+<!-- Form Container -->
+<div class="max-w-lg w-full mx-auto bg-white p-8 rounded-lg shadow-lg">
+  <!-- Page Header -->
+  <h1 class="text-3xl md:text-5xl font-bold text-center text-gray-800 mb-6">Create a New Lobby</h1>
 
-<form method="POST">
-  <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
-  <div class="pt-10">
-    <label for="host_color">Choose your starting color:</label>
-    <select id="host_color" name="host_color">
-      <option value="white">White</option>
+  <!-- New Lobby Form -->
+  <form method="POST" class="space-y-6">
+    <input type="hidden" name="_csrf_token" value={Phoenix.Controller.get_csrf_token()} />
 
-      <option value="black">Black</option>
-    </select>
-  </div>
+    <!-- Host Color Selection -->
+    <div>
+      <label for="host_color" class="block text-lg font-medium text-gray-700 mb-2">Choose your starting color:</label>
+      <select
+        id="host_color"
+        name="host_color"
+        class="block w-full bg-slate-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="white">White</option>
+        <option value="black">Black</option>
+      </select>
+    </div>
 
-  <div class="pt-8">
-    <label for="lobby_password">Set a lobby password:</label>
-    <input
-      id="lobby_password"
-      name="lobby_password"
-      class="bg-slate-200 rounded px-3 py-2"
-      value={Enum.random(100_000..999_999)}
-    />
-  </div>
+    <!-- Lobby Password Input -->
+    <div>
+      <label for="lobby_password" class="block text-lg font-medium text-gray-700 mb-2">Set a lobby password:</label>
+      <input
+        id="lobby_password"
+        name="lobby_password"
+        class="block w-full bg-slate-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={Enum.random(100_000..999_999)}
+      />
+    </div>
 
-  <div class="pt-8">
-    <button class="cursor-pointer rounded bg-slate-200 px-3 py-2 text-lg">Create Lobby</button>
-    <p class="text-sm">Note: Your lobby code will be available upon creation.</p>
-  </div>
-</form>
+    <!-- Create Lobby Button -->
+    <div>
+      <button
+        type="submit"
+        class="w-full cursor-pointer rounded bg-green-500 hover:bg-green-600 text-white font-medium px-3 py-2"
+      >
+        Create Lobby
+      </button>
+      <p class="text-sm text-gray-600 mt-2">Note: Your lobby code will be available upon creation.</p>
+    </div>
+  </form>
+</div>
