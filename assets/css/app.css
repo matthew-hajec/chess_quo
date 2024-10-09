@@ -3,3 +3,10 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+html, body {
+    height: 100%;
+}
+
+body {
+   background: linear-gradient(to bottom right, #e0f7fa, #ffecb3);
+}
