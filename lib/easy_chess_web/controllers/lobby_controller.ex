@@ -1,4 +1,5 @@
 defmodule EasyChessWeb.LobbyController do
+  require Logger
   use EasyChessWeb, :controller
 
   def help_set_game_cookies(conn, role, code, secret, color) do
@@ -41,9 +42,10 @@ defmodule EasyChessWeb.LobbyController do
         |> redirect(to: "/play/#{code}")
 
       {:error, reason} ->
+        Logger.error("Error creating lobby: #{inspect reason}")
         conn
-        |> put_flash(:error, "Error creating lobby: #{reason}")
-        |> redirect(to: "/lobby/new")
+        |> put_flash(:error, "Error creating lobby.")
+        |> redirect(to: "/lobby/create")
     end
   end
 
@@ -57,6 +59,12 @@ defmodule EasyChessWeb.LobbyController do
       {:ok, false} ->
         conn
         |> put_flash(:error, "No lobby exists with the given code.")
+        |> redirect(to: "/")
+
+      {:error, reason} ->
+        Logger.error("Error checking lobby existence: #{inspect reason}")
+        conn
+        |> put_flash(:error, "Error checking lobby existence.")
         |> redirect(to: "/")
     end
   end

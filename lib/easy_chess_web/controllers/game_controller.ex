@@ -1,4 +1,5 @@
 defmodule EasyChessWeb.GameController do
+  require Logger
   use EasyChessWeb, :controller
 
   @get_game_params_schema %{
@@ -34,9 +35,10 @@ defmodule EasyChessWeb.GameController do
       |> assign(:role, role)
       |> render(:game)
     else
-      _ ->
+      {:error, reason} ->
+        Logger.error("Failed to get game: #{inspect reason}")
         conn
-        |> put_flash(:error, "Invalid game code.")
+        |> put_flash(:error, "Failed to join game.")
         |> redirect(to: "/")
     end
   end

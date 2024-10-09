@@ -1,4 +1,6 @@
 defmodule EasyChess.Lobby do
+  require Logger
+
   alias EasyChess.Chess.Game
 
   @lobby_charset "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -46,8 +48,10 @@ defmodule EasyChess.Lobby do
         # If the code already exists, try a new code.
         create_lobby(password, host_color)
 
-      {:error, _} ->
-        {:error, "Failed to create lobby"}
+
+      {:error, reason} ->
+        Logger.error("Failed to create lobby: #{inspect reason}")
+        {:error, reason}
     end
   end
 
