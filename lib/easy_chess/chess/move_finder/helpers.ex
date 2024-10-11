@@ -28,9 +28,6 @@ defmodule EasyChess.Chess.MoveFinder.Helpers do
 
 
   def king_in_check?(game, color) do
-    #Process.sleep(1000)
-    IO.puts("King in check, check")
-
     # Find the index of the king of the given color
     king_index =
       Enum.find_index(game.board, fn piece ->
@@ -40,10 +37,8 @@ defmodule EasyChess.Chess.MoveFinder.Helpers do
     # Generate all moves with the `validating` flag set to true
     # This prevents infinite recursion, since find_valid_moves must
     # check if the king is in check
-    IO.puts("Finding dem valid moves")
     all_moves = MoveFinder.find_valid_moves(game, 0, [], true)
 
-    IO.puts("FOund em valid moves")
     # Filter moves to include only the opponent's moves
     opponent_moves =
       Enum.filter(all_moves, fn move ->

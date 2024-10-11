@@ -67,21 +67,15 @@ defmodule EasyChessWeb.RoomChannel do
          true <- is_valid_board_index?(from),
          true <- is_valid_board_index?(to),
          {:ok, color} <- EasyChess.Lobby.get_color(lobby_code, role),
-         ^color <- game.turn do
-      # Get the piece at the from index
-      piece = EasyChess.Chess.Game.at(game, from)
-
+         ^color <- Atom.to_string(game.turn) do
       # Get the valid moves for the piece
       valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
-      piece_moves = Enum.filter(valid_moves, fn move -> move.from == from end)
 
-      # Ensure the piece is the correct color
-      is_correct_color = Atom.to_string(piece.color) == color
+      move = Enum.find(valid_moves, fn move ->
+        move.from == from and move.to == to
+      end)
 
-      # Ensure the move is in the list of valid moves
-      move = Enum.find(piece_moves, fn move -> move.to == to end)
-
-      if is_correct_color and move != nil do
+      if move != nil do
         # Apply the move
         new_game = EasyChess.Chess.Game.apply_move(game, move)
 
@@ -113,8 +107,9 @@ defmodule EasyChessWeb.RoomChannel do
         {:reply, {:error, %{reason: "invalid_move"}}, socket}
       end
     else
-      _ ->
-        {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
+      v ->
+        IO.inspect(v)
+        {:reply, {:error, %{reason: "can not move"}}, socket}
     end
   end
 
