@@ -10,10 +10,6 @@ defmodule EasyChessWeb.Router do
     plug :put_secure_browser_headers
   end
 
-  pipeline :api do
-    plug :accepts, ["json"]
-  end
-
   scope "/", EasyChessWeb do
     pipe_through :browser
 
@@ -31,11 +27,6 @@ defmodule EasyChessWeb.Router do
 
     get "/play/:code", GameController, :get_game
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", EasyChessWeb do
-  #   pipe_through :api
-  # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:easy_chess, :dev_routes) do
