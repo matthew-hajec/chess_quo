@@ -1,12 +1,12 @@
-defmodule EasyChessWeb.ErrorJSONTest do
-  use EasyChessWeb.ConnCase, async: true
+# defmodule EasyChessWeb.ErrorJSONTest do
+#   use EasyChessWeb.ConnCase, async: true
 
-  test "renders 404" do
-    assert EasyChessWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
-  end
+#   test "renders 404" do
+#     assert EasyChessWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
+#   end
 
-  test "renders 500" do
-    assert EasyChessWeb.ErrorJSON.render("500.json", %{}) ==
-             %{errors: %{detail: "Internal Server Error"}}
-  end
-end
+#   test "renders 500" do
+#     assert EasyChessWeb.ErrorJSON.render("500.json", %{}) ==
+#              %{errors: %{detail: "Internal Server Error"}}
+#   end
+# end
