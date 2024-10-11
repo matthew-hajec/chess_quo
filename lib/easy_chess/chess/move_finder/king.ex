@@ -1,9 +1,13 @@
 defmodule EasyChess.MoveFinder.King do
-  alias EasyChess.Chess.MoveFinder.Helpers
+  alias EasyChess.Chess.MoveFinder.{Helpers}
   alias EasyChess.Chess.{Game, Piece, Move}
 
   def valid_moves(game, %Piece{piece: :king} = king, index) do
-    single_moves(game, index, king)
+    moves = []
+
+    moves = single_moves(game, index, king) ++ moves
+
+    moves
   end
 
   defp single_moves(game, index, piece) do

@@ -4,6 +4,7 @@ defmodule EasyChess.Chess.MoveFinder do
   """
 
   alias EasyChess.Chess.{Game, Piece}
+  alias EasyChess.Chess.MoveFinder.{Helpers, CastleMove}
 
   @doc """
   Finds all valid moves for all pieces on the board.
@@ -15,20 +16,32 @@ defmodule EasyChess.Chess.MoveFinder do
   end
 
   # Base case for the recursive function
-  defp find_valid_moves(game, 64, moves, validating) do
-    # If we are validating, we need to remove moves that would put the king in check
+  def find_valid_moves(game, 64, moves, validating) do
+    IO.puts("HELLO??")
+    IO.puts("We are validating?: #{validating}")
+    # If we are validating, we should not remove moves that would put the king in check
     moves =
       if validating do
         moves
       else
-        remove_check_moves(game, moves)
+        temp_moves = remove_check_moves(game, moves)
+        temp_moves = CastleMove.generate(game, :white, :king) ++ temp_moves
+        temp_moves = CastleMove.generate(game, :white, :queen) ++ temp_moves
+        temp_moves = CastleMove.generate(game, :black, :king) ++ temp_moves
+        temp_moves = CastleMove.generate(game, :black, :queen) ++ temp_moves
+
+        temp_moves
       end
+
+    # Finally, add castling moves
+    # We add them here to prevent infinite recursion, since it relies on calling this function
+
 
     # Sort the moves by the "to" index
     Enum.sort_by(moves, & &1.to)
   end
 
-  defp find_valid_moves(game, index, moves, validating) do
+  def find_valid_moves(game, index, moves, validating) do
     piece = Game.at(game, index)
 
     new_moves =
@@ -72,7 +85,7 @@ defmodule EasyChess.Chess.MoveFinder do
       end)
 
     # Check if the king is in check
-    in_check = king_in_check?(game, color)
+    in_check = Helpers.king_in_check?(game, color)
 
     cond do
       in_check and current_player_moves == [] ->
@@ -92,29 +105,7 @@ defmodule EasyChess.Chess.MoveFinder do
       game_after_move = Game.apply_move(game, move)
 
       # Check if our own king is in check after the move
-      not king_in_check?(game_after_move, move.piece.color)
-    end)
-  end
-
-  defp king_in_check?(game, color) do
-    # Find the index of the king of the given color
-    king_index =
-      Enum.find_index(game.board, fn piece ->
-        piece == %Piece{piece: :king, color: color}
-      end)
-
-    # Generate all moves with the `validating` flag set to true
-    all_moves = find_valid_moves(game, 0, [], true)
-
-    # Filter moves to include only the opponent's moves
-    opponent_moves =
-      Enum.filter(all_moves, fn move ->
-        move.piece.color != color
-      end)
-
-    # Check if any opponent move can attack the king's position
-    Enum.any?(opponent_moves, fn move ->
-      move.to == king_index
+      not Helpers.king_in_check?(game_after_move, move.piece.color)
     end)
   end
 end

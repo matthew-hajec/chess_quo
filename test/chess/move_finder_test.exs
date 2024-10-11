@@ -865,4 +865,165 @@ defmodule MoveFinderTest do
       assert white_king_moves == valid_king_moves
     end
   end
+
+  describe "generate_moves/1 for castling move" do
+    test "the king can castle to either side" do
+      game =
+        setup_game([
+          {~B"e1", Piece.new(:white, :king)},
+          {~B"h1", Piece.new(:white, :rook)},
+          {~B"a1", Piece.new(:white, :rook)}
+        ])
+
+      all_moves = MoveFinder.find_valid_moves(game)
+
+      # Castle moves
+      castling_moves = Enum.filter(all_moves, fn move ->
+        move.castle_side != nil
+      end)
+
+      expected_moves =
+          [
+            Move.new(~B"e1", ~B"g1", Piece.new(:white, :king), nil, :king),
+            Move.new(~B"e1", ~B"c1", Piece.new(:white, :king), nil, :queen)
+          ]
+
+      assert Enum.sort_by(castling_moves, & &1.to) == Enum.sort_by(expected_moves, & &1.to)
+    end
+
+    test "the king can not castle if the king has moved" do
+      game =
+        setup_game([
+          {~B"e1", Piece.new(:white, :king)},
+          {~B"h1", Piece.new(:white, :rook)},
+          {~B"a1", Piece.new(:white, :rook)}
+        ])
+
+      game = Game.apply_move(game, Move.new(~B"e1", ~B"e2", Piece.new(:white, :king)))
+      game = Game.apply_move(game, Move.new(~B"e2", ~B"e1", Piece.new(:white, :king))) # Move back
+
+      all_moves = MoveFinder.find_valid_moves(game)
+
+      # Castle moves
+      castling_moves = Enum.filter(all_moves, fn move ->
+        move.castle_side != nil
+      end)
+
+      assert Enum.empty?(castling_moves)
+    end
+
+    test "the king can not castle if the rook has moved" do
+      game =
+        setup_game([
+          # White Side
+          {~B"a1", Piece.new(:white, :rook)},
+          {~B"e1", Piece.new(:white, :king)},
+          {~B"h1", Piece.new(:white, :rook)},
+
+          # Black Side
+          {~B"a8", Piece.new(:black, :rook)},
+          {~B"e8", Piece.new(:black, :king)},
+          {~B"h8", Piece.new(:black, :rook)},
+        ])
+
+      # White rook at a1 moves to a2 and back
+      game = Game.apply_move(game, Move.new(~B"a1", ~B"a2", Piece.new(:white, :rook)))
+      game = Game.apply_move(game, Move.new(~B"a2", ~B"a1", Piece.new(:white, :rook)))
+
+      # Black rook at h8 moves to h3 and back
+      game = Game.apply_move(game, Move.new(~B"h8", ~B"h3", Piece.new(:black, :rook)))
+      game = Game.apply_move(game, Move.new(~B"h3", ~B"h8", Piece.new(:black, :rook)))
+
+      # Generate moves
+      all_moves = MoveFinder.find_valid_moves(game)
+
+      # Castle moves
+      castling_moves = Enum.filter(all_moves, fn move ->
+        move.castle_side != nil
+      end)
+
+      expected_moves = [
+        # White king to g1 king side
+        Move.new(~B"e1", ~B"g1", Piece.new(:white, :king), nil, :king),
+
+        # Black king to c8 queen side
+        Move.new(~B"e8", ~B"c8", Piece.new(:black, :king), nil, :queen)
+      ]
+
+      assert Enum.sort_by(castling_moves, & &1.to) == Enum.sort_by(expected_moves, & &1.to)
+    end
+
+    test "the king can not castle if it is in check" do
+      game =
+        setup_game([
+          {~B"e1", Piece.new(:white, :king)},
+          {~B"h1", Piece.new(:white, :rook)},
+          {~B"a1", Piece.new(:white, :rook)},
+
+          # Knight attacking king
+          {~B"d3", Piece.new(:black, :knight)}
+        ])
+
+        all_moves = MoveFinder.find_valid_moves(game)
+
+        # Castle moves
+        castling_moves = Enum.filter(all_moves, fn move ->
+          move.castle_side != nil
+        end)
+
+      assert Enum.empty?(castling_moves)
+    end
+
+    test "the king can not castle a square in the path is in check" do
+      game =
+        setup_game([
+          {~B"e1", Piece.new(:white, :king)},
+          {~B"h1", Piece.new(:white, :rook)},
+          {~B"a1", Piece.new(:white, :rook)},
+
+          # Knight attacking d1 (in path of queen side castle)
+          {~B"d3", Piece.new(:black, :knight)},
+
+          # Rook attacking g1 (in path of king side castle)
+          {~B"g8", Piece.new(:black, :rook)}
+        ])
+
+        all_moves = MoveFinder.find_valid_moves(game)
+
+        # Castle moves
+        castling_moves = Enum.filter(all_moves, fn move ->
+          move.castle_side != nil
+        end)
+      assert Enum.empty?(castling_moves)
+    end
+
+    test "the king can castle if non-path squares are in check" do
+      game =
+        setup_game([
+          {~B"e1", Piece.new(:white, :king)},
+          {~B"h1", Piece.new(:white, :rook)},
+          {~B"a1", Piece.new(:white, :rook)},
+
+          # Bishop attacking b1
+          {~B"f5", Piece.new(:black, :knight)},
+
+          # Rook attacking the rook at h1
+          {~B"h8", Piece.new(:black, :rook)}
+        ])
+
+        all_moves = MoveFinder.find_valid_moves(game)
+
+        # Castle moves
+        castling_moves = Enum.filter(all_moves, fn move ->
+          move.castle_side != nil
+        end)
+      expected_moves =
+        [
+          Move.new(~B"e1", ~B"g1", Piece.new(:white, :king), nil, :king),
+          Move.new(~B"e1", ~B"c1", Piece.new(:white, :king), nil, :queen)
+        ]
+
+      assert Enum.sort_by(castling_moves, & &1.to) == Enum.sort_by(expected_moves, & &1.to)
+    end
+  end
 end
