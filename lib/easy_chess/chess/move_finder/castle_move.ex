@@ -9,23 +9,19 @@ defmodule EasyChess.Chess.MoveFinder.CastleMove do
     cond do
       # The rook and king must exist at the start indexes
       Game.at(game, rook_idx) == nil or Game.at(game, king_idx) == nil ->
-        IO.puts("Rook or king missing")
         []
 
       # The king cannot have moved
       king_moved?(game, color) ->
-        IO.puts("King moved")
         []
 
       # The rook cannot have moved
       rook_moved?(game, color, side) ->
-        IO.puts("Rook moved")
         []
 
       # The path of the king must be clear (the starting square, squares moved through, and destination square)
       # Additionally, the king cannot be in check on any of the squares
       !king_path_clear?(game, color, side) ->
-        IO.puts("King path not clear")
         []
 
       true ->
@@ -55,31 +51,22 @@ defmodule EasyChess.Chess.MoveFinder.CastleMove do
     king_index = king_start_idx(color)
     path_indexes = king_path_indexes(game, color, side)
 
-    IO.puts("Checking if king in check during castle move gen")
     # Make sure the king is not in check on any of the squares
     if Helpers.king_in_check?(game, color) do
-      IO.puts("King in check")
       false
     else
-      IO.puts("Guess what? The king wasn't in check!")
       Enum.all?(path_indexes, fn index ->
         if Game.at(game, index) != nil do
-          IO.puts("Piece in the way at #{index}")
           false
         else
           # Test if the king is in check on the square
           test_move = Move.new(king_index, index, Game.at(game, king_index))
           test_game = Game.apply_move(game, test_move)
 
-          IO.puts("The infinite loop happens after here.")
-
           test_in_check =
             Helpers.king_in_check?(test_game, color)
 
-          IO.puts("And does NOT go here?")
-
           if test_in_check do
-            IO.puts("King in check at #{index}")
             false
           else
             true

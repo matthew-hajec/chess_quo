@@ -17,8 +17,6 @@ defmodule EasyChess.Chess.MoveFinder do
 
   # Base case for the recursive function
   def find_valid_moves(game, 64, moves, validating) do
-    IO.puts("HELLO??")
-    IO.puts("We are validating?: #{validating}")
     # If we are validating, we should not remove moves that would put the king in check
     moves =
       if validating do
