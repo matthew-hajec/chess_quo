@@ -11,13 +11,9 @@ defmodule EasyChess.Application do
       EasyChessWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:easy_chess, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: EasyChess.PubSub},
-      # Start the Finch HTTP client for sending emails
-      {Finch, name: EasyChess.Finch},
-      # Start a worker by calling: EasyChess.Worker.start_link(arg)
-      # {EasyChess.Worker, arg},
+      {Redix, [name: :redix]},
       # Start to serve requests, typically the last entry
       EasyChessWeb.Endpoint,
-      {Redix, [name: :redix]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

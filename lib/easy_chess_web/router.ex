@@ -50,7 +50,6 @@ defmodule EasyChessWeb.Router do
       pipe_through :browser
 
       live_dashboard "/dashboard", metrics: EasyChessWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end
 end
