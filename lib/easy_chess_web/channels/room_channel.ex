@@ -66,7 +66,8 @@ defmodule EasyChessWeb.RoomChannel do
     with {:ok, game} <- EasyChess.Lobby.get_game(lobby_code),
          true <- is_valid_board_index?(from),
          true <- is_valid_board_index?(to),
-         {:ok, color} <- EasyChess.Lobby.get_color(lobby_code, role) do
+         {:ok, color} <- EasyChess.Lobby.get_color(lobby_code, role),
+         ^color <- game.turn do
       # Get the piece at the from index
       piece = EasyChess.Chess.Game.at(game, from)
 
