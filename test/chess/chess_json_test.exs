@@ -30,5 +30,24 @@ defmodule ChessJsonTest do
 
       assert game == Poison.decode!(Poison.encode!(game), as: %Game{})
     end
+
+    test "encodes and decodes the game struct with a move history" do
+      game = Game.new()
+
+      repeated_move = Move.new(0, 0, %Piece{color: :white, piece: :pawn})
+
+      game = Game.apply_move(game, repeated_move)
+      game = Game.apply_move(game, repeated_move)
+      game = Game.apply_move(game, repeated_move)
+      game = Game.apply_move(game, repeated_move)
+      game = Game.apply_move(game, repeated_move)
+
+      decoded_game = Poison.decode!(Poison.encode!(game), as: %Game{})
+
+      IO.inspect(decoded_game)
+
+      assert length(decoded_game.move_history) == 5
+      assert Enum.all?(decoded_game.move_history, fn move -> move == repeated_move end)
+    end
   end
 end

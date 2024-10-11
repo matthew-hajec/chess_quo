@@ -87,7 +87,7 @@ defmodule EasyChess.Chess.Game do
 
   defimpl Poison.Decoder do
     def decode(
-          %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move},
+          %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move, move_history: move_history},
           _opts
         ) do
       board =
@@ -108,7 +108,12 @@ defmodule EasyChess.Chess.Game do
           Poison.decode!(Poison.encode!(previous_move), as: %Move{})
         end
 
-      %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move}
+      move_history =
+        Enum.map(move_history, fn move ->
+          Poison.decode!(Poison.encode!(move), as: %Move{})
+        end)
+
+      %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move, move_history: move_history}
     end
   end
 
