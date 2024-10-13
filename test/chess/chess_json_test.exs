@@ -44,8 +44,6 @@ defmodule ChessJsonTest do
 
       decoded_game = Poison.decode!(Poison.encode!(game), as: %Game{})
 
-      IO.inspect(decoded_game)
-
       assert length(decoded_game.move_history) == 5
       assert Enum.all?(decoded_game.move_history, fn move -> move == repeated_move end)
     end

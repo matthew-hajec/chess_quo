@@ -107,8 +107,7 @@ defmodule EasyChessWeb.RoomChannel do
         {:reply, {:error, %{reason: "invalid_move"}}, socket}
       end
     else
-      v ->
-        IO.inspect(v)
+      _ ->
         {:reply, {:error, %{reason: "can not move"}}, socket}
     end
   end
