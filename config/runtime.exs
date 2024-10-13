@@ -20,6 +20,12 @@ if System.get_env("PHX_SERVER") do
   config :easy_chess, EasyChessWeb.Endpoint, server: true
 end
 
+# Read redis configuration from environment variables
+config :redix,
+  redis_host: System.get_env("REDIS_HOST") || "localhost",
+  redis_port: String.to_integer(System.get_env("REDIS_PORT") || "6379"),
+  redis_password: System.get_env("REDIS_PASSWORD") || nil
+
 if config_env() == :prod do
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you

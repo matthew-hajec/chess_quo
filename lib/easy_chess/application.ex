@@ -11,7 +11,12 @@ defmodule EasyChess.Application do
       EasyChessWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:easy_chess, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: EasyChess.PubSub},
-      {Redix, [name: :redix]},
+      {Redix, [
+        name: :redix,
+        host: Application.get_env(:redix, :redis_host),
+        port: Application.get_env(:redix, :redis_port),
+        password: Application.get_env(:redix, :redis_password)
+      ]},
       # Start to serve requests, typically the last entry
       EasyChessWeb.Endpoint,
     ]
