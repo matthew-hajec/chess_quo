@@ -133,13 +133,8 @@ defmodule EasyChess.Chess.Game do
   end
 
   def apply_move(game, move) do
-    # If the `captures` field is set, remove the captured piece from the board
-    new_board =
-      if move.captures != nil do
-        List.replace_at(game.board, move.captures, nil)
-      else
-        game.board
-      end
+    new_board = castling_move_rook(game.board, move)
+    new_board = apply_capture(new_board, move)
 
     new_board = List.replace_at(new_board, move.from, nil)
     new_board = List.replace_at(new_board, move.to, move.piece)
@@ -153,6 +148,40 @@ defmodule EasyChess.Chess.Game do
         previous_move: move,
         move_history: move_history
     }
+  end
+
+  defp castling_move_rook(board, move) do
+    # If the move is a castle move, move the rook as well
+    # Returns a new board
+    if move.castle_side != nil do
+      king_start_idx = move.from
+
+      if move.castle_side == :king do
+        rook_start_idx = king_start_idx + 3
+        rook_end_idx = king_start_idx + 1
+        rook = Enum.at(board, rook_start_idx)
+
+        new_board = List.replace_at(board, rook_start_idx, nil)
+        List.replace_at(new_board, rook_end_idx, rook)
+      else
+        rook_start_idx = king_start_idx - 4
+        rook_end_idx = king_start_idx - 1
+        rook = Enum.at(board, rook_start_idx)
+
+        new_board = List.replace_at(board, rook_start_idx, nil)
+        List.replace_at(new_board, rook_end_idx, rook)
+      end
+    else
+      board # Return the original board when not castling
+    end
+  end
+
+  defp apply_capture(board, move) do
+    if move.captures != nil do
+      List.replace_at(board, move.captures, nil)
+    else
+      board
+    end
   end
 
   defp next_turn(:white), do: :black

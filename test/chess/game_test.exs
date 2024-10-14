@@ -152,5 +152,29 @@ defmodule GameTest do
 
       assert [move2, move1] == new_game.move_history
     end
+
+    test "applying a castling move moves the rook" do
+      board = List.duplicate(nil, 64)
+
+      board = List.replace_at(board, ~B"e1", Piece.new(:white, :king))
+      board = List.replace_at(board, ~B"a1", Piece.new(:white, :rook))
+      board = List.replace_at(board, ~B"h1", Piece.new(:white, :rook))
+
+      # Create game from the board state
+      game = %Game{board: board}
+
+      # Create a move
+      king_castle_move = Move.new(~B"e1", ~B"g1", Piece.new(:white, :king), nil, :king)
+      queen_castle_move = Move.new(~B"e1", ~B"c1", Piece.new(:white, :king), nil, :queen)
+
+      king_castle_game = Game.apply_move(game, king_castle_move)
+      queen_castle_game = Game.apply_move(game, queen_castle_move)
+
+      assert Enum.at(king_castle_game.board, ~B"f1") == Piece.new(:white, :rook)
+      assert Enum.at(king_castle_game.board, ~B"g1") == Piece.new(:white, :king)
+
+      assert Enum.at(queen_castle_game.board, ~B"d1") == Piece.new(:white, :rook)
+      assert Enum.at(queen_castle_game.board, ~B"c1") == Piece.new(:white, :king)
+    end
   end
 end
