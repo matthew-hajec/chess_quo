@@ -34,7 +34,6 @@ defmodule EasyChess.Chess.MoveFinder do
     # Finally, add castling moves
     # We add them here to prevent infinite recursion, since it relies on calling this function
 
-
     # Sort the moves by the "to" index
     Enum.sort_by(moves, & &1.to)
   end

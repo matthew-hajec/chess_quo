@@ -71,9 +71,10 @@ defmodule EasyChessWeb.RoomChannel do
       # Get the valid moves for the piece
       valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
 
-      move = Enum.find(valid_moves, fn move ->
-        move.from == from and move.to == to
-      end)
+      move =
+        Enum.find(valid_moves, fn move ->
+          move.from == from and move.to == to
+        end)
 
       if move != nil do
         # Apply the move

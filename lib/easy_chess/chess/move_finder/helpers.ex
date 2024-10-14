@@ -26,7 +26,6 @@ defmodule EasyChess.Chess.MoveFinder.Helpers do
     in_bounds?(current_index) and valid_rank?(rank) and valid_file?(file)
   end
 
-
   def king_in_check?(game, color) do
     # Find the index of the king of the given color
     king_index =

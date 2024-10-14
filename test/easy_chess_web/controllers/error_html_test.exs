@@ -6,15 +6,24 @@ defmodule EasyChessWeb.ErrorHTMLTest do
 
   describe "error pages contain their corresponding reason-prase" do
     test "404 error page contains 'Not Found'" do
-      assert String.contains?(render_to_string(EasyChessWeb.ErrorHTML, "404", "html", []), "Not Found")
+      assert String.contains?(
+               render_to_string(EasyChessWeb.ErrorHTML, "404", "html", []),
+               "Not Found"
+             )
     end
 
     test "500 error page contains 'Internal Server Error'" do
-      assert String.contains?(render_to_string(EasyChessWeb.ErrorHTML, "500", "html", []), "Internal Server Error")
+      assert String.contains?(
+               render_to_string(EasyChessWeb.ErrorHTML, "500", "html", []),
+               "Internal Server Error"
+             )
     end
 
     test "400 error page contains 'Bad Request'" do
-      assert String.contains?(render_to_string(EasyChessWeb.ErrorHTML, "400", "html", []), "Bad Request")
+      assert String.contains?(
+               render_to_string(EasyChessWeb.ErrorHTML, "400", "html", []),
+               "Bad Request"
+             )
     end
   end
 end

@@ -212,6 +212,26 @@ defmodule MoveFinderTest do
 
       assert found_moves == valid_moves
     end
+
+    test "a white pawn can promote on the last rank" do
+      game = setup_game([
+        # White pawn on the 7th rank
+        {~B"a7", Piece.new(:white, :pawn)}
+      ])
+
+      found_moves = MoveFinder.find_valid_moves(game)
+
+      # There should be 4 possible promotions
+      promotion_moves = [
+        Move.new(~B"a7", ~B"a8", Piece.new(:white, :pawn), nil, nil, :rook),
+        Move.new(~B"a7", ~B"a8", Piece.new(:white, :pawn), nil, nil, :bishop),
+        Move.new(~B"a7", ~B"a8", Piece.new(:white, :pawn), nil, nil, :knight),
+        Move.new(~B"a7", ~B"a8", Piece.new(:white, :pawn), nil, nil, :queen)
+      ]
+
+      # Sort by `promote_to`, because `to` is the same for each move
+      assert Enum.sort_by(promotion_moves, & &1.promote_to) == Enum.sort_by(found_moves, & &1.promote_to)
+    end
   end
 
   describe "find_valid_moves/1 for rooks" do
@@ -878,15 +898,16 @@ defmodule MoveFinderTest do
       all_moves = MoveFinder.find_valid_moves(game)
 
       # Castle moves
-      castling_moves = Enum.filter(all_moves, fn move ->
-        move.castle_side != nil
-      end)
+      castling_moves =
+        Enum.filter(all_moves, fn move ->
+          move.castle_side != nil
+        end)
 
       expected_moves =
-          [
-            Move.new(~B"e1", ~B"g1", Piece.new(:white, :king), nil, :king),
-            Move.new(~B"e1", ~B"c1", Piece.new(:white, :king), nil, :queen)
-          ]
+        [
+          Move.new(~B"e1", ~B"g1", Piece.new(:white, :king), nil, :king),
+          Move.new(~B"e1", ~B"c1", Piece.new(:white, :king), nil, :queen)
+        ]
 
       assert Enum.sort_by(castling_moves, & &1.to) == Enum.sort_by(expected_moves, & &1.to)
     end
@@ -900,14 +921,16 @@ defmodule MoveFinderTest do
         ])
 
       game = Game.apply_move(game, Move.new(~B"e1", ~B"e2", Piece.new(:white, :king)))
-      game = Game.apply_move(game, Move.new(~B"e2", ~B"e1", Piece.new(:white, :king))) # Move back
+      # Move back
+      game = Game.apply_move(game, Move.new(~B"e2", ~B"e1", Piece.new(:white, :king)))
 
       all_moves = MoveFinder.find_valid_moves(game)
 
       # Castle moves
-      castling_moves = Enum.filter(all_moves, fn move ->
-        move.castle_side != nil
-      end)
+      castling_moves =
+        Enum.filter(all_moves, fn move ->
+          move.castle_side != nil
+        end)
 
       assert Enum.empty?(castling_moves)
     end
@@ -923,7 +946,7 @@ defmodule MoveFinderTest do
           # Black Side
           {~B"a8", Piece.new(:black, :rook)},
           {~B"e8", Piece.new(:black, :king)},
-          {~B"h8", Piece.new(:black, :rook)},
+          {~B"h8", Piece.new(:black, :rook)}
         ])
 
       # White rook at a1 moves to a2 and back
@@ -938,9 +961,10 @@ defmodule MoveFinderTest do
       all_moves = MoveFinder.find_valid_moves(game)
 
       # Castle moves
-      castling_moves = Enum.filter(all_moves, fn move ->
-        move.castle_side != nil
-      end)
+      castling_moves =
+        Enum.filter(all_moves, fn move ->
+          move.castle_side != nil
+        end)
 
       expected_moves = [
         # White king to g1 king side
@@ -964,10 +988,11 @@ defmodule MoveFinderTest do
           {~B"d3", Piece.new(:black, :knight)}
         ])
 
-        all_moves = MoveFinder.find_valid_moves(game)
+      all_moves = MoveFinder.find_valid_moves(game)
 
-        # Castle moves
-        castling_moves = Enum.filter(all_moves, fn move ->
+      # Castle moves
+      castling_moves =
+        Enum.filter(all_moves, fn move ->
           move.castle_side != nil
         end)
 
@@ -988,12 +1013,14 @@ defmodule MoveFinderTest do
           {~B"g8", Piece.new(:black, :rook)}
         ])
 
-        all_moves = MoveFinder.find_valid_moves(game)
+      all_moves = MoveFinder.find_valid_moves(game)
 
-        # Castle moves
-        castling_moves = Enum.filter(all_moves, fn move ->
+      # Castle moves
+      castling_moves =
+        Enum.filter(all_moves, fn move ->
           move.castle_side != nil
         end)
+
       assert Enum.empty?(castling_moves)
     end
 
@@ -1011,12 +1038,14 @@ defmodule MoveFinderTest do
           {~B"h8", Piece.new(:black, :rook)}
         ])
 
-        all_moves = MoveFinder.find_valid_moves(game)
+      all_moves = MoveFinder.find_valid_moves(game)
 
-        # Castle moves
-        castling_moves = Enum.filter(all_moves, fn move ->
+      # Castle moves
+      castling_moves =
+        Enum.filter(all_moves, fn move ->
           move.castle_side != nil
         end)
+
       expected_moves =
         [
           Move.new(~B"e1", ~B"g1", Piece.new(:white, :king), nil, :king),

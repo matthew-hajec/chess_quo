@@ -10,7 +10,24 @@ defmodule EasyChess.MoveFinder.Pawn do
     moves = moves ++ diagonal_capture(game, index, pawn)
     moves = moves ++ en_passant_capture(game, index, pawn)
 
+    moves = Enum.flat_map(moves, fn move ->
+      if is_promotion?(move) do
+        Enum.map([:rook, :knight, :bishop, :queen], fn type ->
+          %{move | promote_to: type}
+        end)
+      else
+        [move]
+      end
+    end)
+
     moves
+  end
+
+  defp is_promotion?(move) do
+    {rank, _} = Helpers.rank_and_file(move.to)
+
+    (move.piece.color == :white and rank == 7) or
+      (move.piece.color == :black and rank == 0)
   end
 
   defp single_move(game, index, %Piece{color: color, piece: :pawn} = pawn) do

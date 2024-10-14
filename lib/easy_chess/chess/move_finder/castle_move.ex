@@ -25,7 +25,7 @@ defmodule EasyChess.Chess.MoveFinder.CastleMove do
         []
 
       true ->
-        new_king_idx = king_idx + (if side == :king, do: 2, else: -2)
+        new_king_idx = king_idx + if side == :king, do: 2, else: -2
         [Move.new(king_idx, new_king_idx, Game.at(game, king_idx), nil, side)]
     end
   end
@@ -92,7 +92,6 @@ defmodule EasyChess.Chess.MoveFinder.CastleMove do
       end
     end
   end
-
 
   defp rook_start_idx(color, side) do
     if color == :white do

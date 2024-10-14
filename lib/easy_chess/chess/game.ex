@@ -87,7 +87,12 @@ defmodule EasyChess.Chess.Game do
 
   defimpl Poison.Decoder do
     def decode(
-          %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move, move_history: move_history},
+          %EasyChess.Chess.Game{
+            turn: turn,
+            board: board,
+            previous_move: previous_move,
+            move_history: move_history
+          },
           _opts
         ) do
       board =
@@ -113,7 +118,12 @@ defmodule EasyChess.Chess.Game do
           Poison.decode!(Poison.encode!(move), as: %Move{})
         end)
 
-      %EasyChess.Chess.Game{turn: turn, board: board, previous_move: previous_move, move_history: move_history}
+      %EasyChess.Chess.Game{
+        turn: turn,
+        board: board,
+        previous_move: previous_move,
+        move_history: move_history
+      }
     end
   end
 
@@ -172,7 +182,8 @@ defmodule EasyChess.Chess.Game do
         List.replace_at(new_board, rook_end_idx, rook)
       end
     else
-      board # Return the original board when not castling
+      # Return the original board when not castling
+      board
     end
   end
 

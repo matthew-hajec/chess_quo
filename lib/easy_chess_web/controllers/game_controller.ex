@@ -38,6 +38,7 @@ defmodule EasyChessWeb.GameController do
       {:ok, false} ->
         conn
         |> redirect(to: "/lobby/join/#{code}")
+
       {:error, reason} ->
         Logger.error("Failed to get game: #{inspect(reason)}")
 
