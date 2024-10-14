@@ -143,7 +143,7 @@ defmodule EasyChess.Chess.Game do
   end
 
   def apply_move(game, move) do
-    new_board = castling_move_rook(game.board, move)
+    new_board = apply_castle_to_rook(game.board, move)
     new_board = apply_capture(new_board, move)
 
     new_board = List.replace_at(new_board, move.from, nil)
@@ -160,7 +160,7 @@ defmodule EasyChess.Chess.Game do
     }
   end
 
-  defp castling_move_rook(board, move) do
+  defp apply_castle_to_rook(board, move) do
     # If the move is a castle move, move the rook as well
     # Returns a new board
     if move.castle_side != nil do

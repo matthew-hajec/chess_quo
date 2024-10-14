@@ -189,5 +189,19 @@ defmodule GameTest do
 
       assert new_game.turn == :white
     end
+
+    test "pawn promotion switches out the piece" do
+      board = List.duplicate(nil, 64)
+
+      board = List.replace_at(board, ~B"a7", Piece.new(:white, :pawn))
+
+      game = %Game{board: board}
+
+      move = Move.new(~B"a7", ~B"a8", Piece.new(:white, :pawn), nil, nil, :queen)
+
+      game = Game.apply_move(game, move)
+
+      assert Enum.at(game.board, ~B"a8") == Piece.new(:white, :queen)
+    end
   end
 end
