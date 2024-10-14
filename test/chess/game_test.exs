@@ -176,5 +176,18 @@ defmodule GameTest do
       assert Enum.at(queen_castle_game.board, ~B"d1") == Piece.new(:white, :rook)
       assert Enum.at(queen_castle_game.board, ~B"c1") == Piece.new(:white, :king)
     end
+
+    test "applying a move changes the turn" do
+      game = Game.new()
+      move = %Move{from: ~B"e2", to: ~B"e4", piece: %Piece{color: :white, piece: :pawn}}
+      new_game = Game.apply_move(game, move)
+
+      assert new_game.turn == :black
+
+      move = %Move{from: ~B"e7", to: ~B"e5", piece: %Piece{color: :black, piece: :pawn}}
+      new_game = Game.apply_move(new_game, move)
+
+      assert new_game.turn == :white
+    end
   end
 end
