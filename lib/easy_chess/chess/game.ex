@@ -145,9 +145,12 @@ defmodule EasyChess.Chess.Game do
   def apply_move(game, move) do
     new_board = apply_castle_to_rook(game.board, move)
     new_board = apply_capture(new_board, move)
+    new_board = apply_pawn_promotion(new_board, move)
 
+    # Move the piece
+    piece = Enum.at(new_board, move.from) # Piece may have been changed by promotion
     new_board = List.replace_at(new_board, move.from, nil)
-    new_board = List.replace_at(new_board, move.to, move.piece)
+    new_board = List.replace_at(new_board, move.to, piece)
 
     move_history = [move | game.move_history]
 
@@ -190,6 +193,19 @@ defmodule EasyChess.Chess.Game do
   defp apply_capture(board, move) do
     if move.captures != nil do
       List.replace_at(board, move.captures, nil)
+    else
+      board
+    end
+  end
+
+  # This promotes the piece, but does not move it.
+  # This works because apply_move/2 does not validate moves, so the piece will be moved
+  defp apply_pawn_promotion(board, move) do
+    if move.promote_to != nil do
+      piece = Enum.at(board, move.from)
+      piece = %Piece{piece | piece: move.promote_to}
+
+      List.replace_at(board, move.from, piece)
     else
       board
     end
