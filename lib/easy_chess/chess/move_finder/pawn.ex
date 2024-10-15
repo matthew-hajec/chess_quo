@@ -10,15 +10,16 @@ defmodule EasyChess.MoveFinder.Pawn do
     moves = moves ++ diagonal_capture(game, index, pawn)
     moves = moves ++ en_passant_capture(game, index, pawn)
 
-    moves = Enum.flat_map(moves, fn move ->
-      if is_promotion?(move) do
-        Enum.map([:rook, :knight, :bishop, :queen], fn type ->
-          %{move | promote_to: type}
-        end)
-      else
-        [move]
-      end
-    end)
+    moves =
+      Enum.flat_map(moves, fn move ->
+        if is_promotion?(move) do
+          Enum.map([:rook, :knight, :bishop, :queen], fn type ->
+            %{move | promote_to: type}
+          end)
+        else
+          [move]
+        end
+      end)
 
     moves
   end

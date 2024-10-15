@@ -148,7 +148,8 @@ defmodule EasyChess.Chess.Game do
     new_board = apply_pawn_promotion(new_board, move)
 
     # Move the piece
-    piece = Enum.at(new_board, move.from) # Piece may have been changed by promotion
+    # Piece may have been changed by promotion
+    piece = Enum.at(new_board, move.from)
     new_board = List.replace_at(new_board, move.from, nil)
     new_board = List.replace_at(new_board, move.to, piece)
 

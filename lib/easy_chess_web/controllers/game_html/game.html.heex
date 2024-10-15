@@ -23,6 +23,62 @@
     <div id="loader-text" class="text-xl font-semibold text-gray-800">Connecting to game...</div>
   </div>
 </div>
+<!-- Promotion Menu -->
+<div
+  id="promotion-menu"
+  class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+  style="display: none;"
+>
+  <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Promote Your Pawn</h2>
+    <p class="text-center text-gray-600 mb-6">
+      Choose a piece to promote your pawn to:
+    </p>
+    <!-- Images based on color -->
+    <% queen_url =
+      if @color == "white",
+        do: "https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg",
+        else: "https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg" %>
+    
+    <% rook_url =
+      if @color == "white",
+        do: "https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg",
+        else: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg" %>
+
+    <% bishop_url =
+      if @color == "white",
+        do: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg",
+        else: "https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg" %>
+
+    <% knight_url =
+      if @color == "white",
+        do: "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg",
+        else: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg" %>
+
+    <div class="grid grid-cols-2 gap-6">
+      <!-- Queen -->
+      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+        <img src={queen_url} alt="Queen" class="w-16 h-16 mb-2" />
+        <span class="text-lg font-medium text-gray-700">Queen</span>
+      </button>
+      <!-- Rook -->
+      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+        <img src={rook_url} alt="Rook" class="w-16 h-16 mb-2" />
+        <span class="text-lg font-medium text-gray-700">Rook</span>
+      </button>
+      <!-- Bishop -->
+      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+        <img src={bishop_url} alt="Bishop" class="w-16 h-16 mb-2" />
+        <span class="text-lg font-medium text-gray-700">Bishop</span>
+      </button>
+      <!-- Knight -->
+      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+        <img src={knight_url} alt="Knight" class="w-16 h-16 mb-2" />
+        <span class="text-lg font-medium text-gray-700">Knight</span>
+      </button>
+    </div>
+  </div>
+</div>
 <!-- Game -->
 <div id="loaded" style="display: none;">
   <div class="max-w-screen-lg mx-auto mt-8 mb-4 text-center">

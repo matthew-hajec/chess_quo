@@ -214,10 +214,11 @@ defmodule MoveFinderTest do
     end
 
     test "a white pawn can promote on the last rank" do
-      game = setup_game([
-        # White pawn on the 7th rank
-        {~B"a7", Piece.new(:white, :pawn)}
-      ])
+      game =
+        setup_game([
+          # White pawn on the 7th rank
+          {~B"a7", Piece.new(:white, :pawn)}
+        ])
 
       found_moves = MoveFinder.find_valid_moves(game)
 
@@ -230,7 +231,8 @@ defmodule MoveFinderTest do
       ]
 
       # Sort by `promote_to`, because `to` is the same for each move
-      assert Enum.sort_by(promotion_moves, & &1.promote_to) == Enum.sort_by(found_moves, & &1.promote_to)
+      assert Enum.sort_by(promotion_moves, & &1.promote_to) ==
+               Enum.sort_by(found_moves, & &1.promote_to)
     end
   end
 
