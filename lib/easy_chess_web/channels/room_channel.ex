@@ -20,8 +20,11 @@ defmodule EasyChessWeb.RoomChannel do
 
       {:ok, socket}
     else
-      _ ->
-        {:error, %{reason: "unauthorized"}}
+      {:ok, false} ->
+        {:error, %{reason: "lobby_not_found"}}
+
+      {:error, reason} ->
+        {:error, %{reason: reason}}
     end
   end
 
@@ -52,8 +55,11 @@ defmodule EasyChessWeb.RoomChannel do
 
       {:reply, {:ok, piece_moves_json}, socket}
     else
-      _ ->
+      false ->
         {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, %{reason: reason}}, socket}
     end
   end
 
@@ -62,54 +68,120 @@ defmodule EasyChessWeb.RoomChannel do
     role = socket.assigns[:role]
     from = params["from"]
     to = params["to"]
+    promote_to = params["is_promotion"] || nil
 
-    with {:ok, game} <- EasyChess.Lobby.get_game(lobby_code),
-         true <- is_valid_board_index?(from),
+    with true <- is_valid_board_index?(from),
          true <- is_valid_board_index?(to),
+         {:ok, game} <- EasyChess.Lobby.get_game(lobby_code),
          {:ok, color} <- EasyChess.Lobby.get_color(lobby_code, role),
-         ^color <- Atom.to_string(game.turn) do
-      # Get the valid moves for the piece
-      valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
+         :ok <- ensure_player_turn(game, color) do
+          process_move(game, from, to, promote_to, color, lobby_code, socket)
+      # # Get the valid moves for the piece
+      # valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
 
-      move =
-        Enum.find(valid_moves, fn move ->
-          move.from == from and move.to == to
-        end)
+      # move =
+      #   Enum.find(valid_moves, fn move ->
+      #     move.from == from and move.to == to
+      #   end)
 
-      if move != nil do
-        # Apply the move
-        new_game = EasyChess.Chess.Game.apply_move(game, move)
+      # if move != nil do
+      #   # Apply the move
+      #   new_game = EasyChess.Chess.Game.apply_move(game, move)
 
-        case EasyChess.Lobby.save_game(lobby_code, new_game) do
-          {:ok, _} ->
-            broadcast!(socket, "game_state", %{game: Poison.encode!(new_game)})
+      #   case EasyChess.Lobby.save_game(lobby_code, new_game) do
+      #     {:ok, _} ->
+      #       broadcast!(socket, "game_state", %{game: Poison.encode!(new_game)})
 
-            # Check the game condition
-            game_condition = EasyChess.Chess.MoveFinder.game_condition(new_game)
+      #       # Check the game condition
+      #       game_condition = EasyChess.Chess.MoveFinder.game_condition(new_game)
 
-            case game_condition do
-              :checkmate ->
-                player_color_uc = String.capitalize(color)
-                broadcast!(socket, "game_over", %{reason: "#{player_color_uc} checkmated!"})
+      #       case game_condition do
+      #         :checkmate ->
+      #           player_color_uc = String.capitalize(color)
+      #           broadcast!(socket, "game_over", %{reason: "#{player_color_uc} checkmated!"})
 
-              :stalemate ->
-                broadcast!(socket, "game_over", %{reason: "Draw"})
+      #         :stalemate ->
+      #           broadcast!(socket, "game_over", %{reason: "Draw"})
 
-              _ ->
-                nil
-            end
+      #         _ ->
+      #           nil
+      #       end
 
-            {:reply, {:ok, Poison.encode!(new_game)}, socket}
+      #       {:reply, {:ok, Poison.encode!(new_game)}, socket}
 
-          {:error, reason} ->
-            {:reply, {:error, %{reason: reason}}, socket}
-        end
-      else
-        {:reply, {:error, %{reason: "invalid_move"}}, socket}
-      end
+      #     {:error, reason} ->
+      #       {:reply, {:error, %{reason: reason}}, socket}
+      #   end
+      # else
+      #   {:reply, {:error, %{reason: "invalid_move"}}, socket}
+      # end
     else
-      _ ->
-        {:reply, {:error, %{reason: "can not move"}}, socket}
+      false ->
+        {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, %{reason: reason}}, socket}
+    end
+  end
+
+  defp process_move(game, from, to, promote_to, color, lobby_code, socket) do
+    valid_moves = EasyChess.Chess.MoveFinder.find_valid_moves(game)
+
+    case find_move(valid_moves, from, to, promote_to) do
+      {:ok, move} ->
+        apply_and_broadcast_move(game, move, color, lobby_code, socket)
+
+      {:error, reason} ->
+        {:reply, {:error, %{reason: reason}}, socket}
+    end
+  end
+
+  defp find_move(valid_moves, from, to, promote_to) do
+    case Enum.find(valid_moves, fn move ->
+           move.from == from and move.to == to and move.promote_to == promote_to
+         end) do
+      nil ->
+        {:error, "invalid_move"}
+
+      move ->
+        {:ok, move}
+    end
+  end
+
+  defp ensure_player_turn(game, color) do
+    if Atom.to_string(game.turn) == color do
+      :ok
+    else
+      {:error, "not_your_turn"}
+    end
+  end
+
+  defp apply_and_broadcast_move(game, move, color, lobby_code, socket) do
+    new_game = EasyChess.Chess.Game.apply_move(game, move)
+
+    case EasyChess.Lobby.save_game(lobby_code, new_game) do
+      {:ok, _} ->
+        broadcast!(socket, "game_state", %{game: Poison.encode!(new_game)})
+
+        # Check the game condition
+        game_condition = EasyChess.Chess.MoveFinder.game_condition(new_game)
+
+        case game_condition do
+          :checkmate ->
+            player_color_uc = String.capitalize(color)
+            broadcast!(socket, "game_over", %{reason: "#{player_color_uc} checkmated!"})
+
+          :stalemate ->
+            broadcast!(socket, "game_over", %{reason: "Draw"})
+
+          _ ->
+            nil
+        end
+
+        {:reply, {:ok, Poison.encode!(new_game)}, socket}
+
+      {:error, reason} ->
+        {:reply, {:error, %{reason: reason}}, socket}
     end
   end
 
