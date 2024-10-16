@@ -7,24 +7,24 @@
 # General application configuration
 import Config
 
-config :easy_chess,
+config :chess_quo,
   generators: [timestamp_type: :utc_datetime]
 
 # Configures the endpoint
-config :easy_chess, EasyChessWeb.Endpoint,
+config :chess_quo, ChessQuoWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: EasyChessWeb.ErrorHTML, json: EasyChessWeb.ErrorJSON],
-    layout: {EasyChessWeb.Layouts, :error}
+    formats: [html: ChessQuoWeb.ErrorHTML, json: ChessQuoWeb.ErrorJSON],
+    layout: {ChessQuoWeb.Layouts, :error}
   ],
-  pubsub_server: EasyChess.PubSub,
+  pubsub_server: ChessQuo.PubSub,
   live_view: [signing_salt: "TQ82Aq/K"]
 
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.17.11",
-  easy_chess: [
+  chess_quo: [
     args:
       ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
@@ -34,7 +34,7 @@ config :esbuild,
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "3.4.3",
-  easy_chess: [
+  chess_quo: [
     args: ~w(
       --config=tailwind.config.js
       --input=css/app.css

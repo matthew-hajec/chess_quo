@@ -1,8 +1,8 @@
 # test/move_validator_test.exs
 defmodule MoveFinderTest do
   use ExUnit.Case
-  alias EasyChess.Chess.{Game, Move, Piece, MoveFinder}
-  import EasyChess.Chess.Sigil
+  alias ChessQuo.Chess.{Game, Move, Piece, MoveFinder}
+  import ChessQuo.Chess.Sigil
 
   defp setup_game(pieces) do
     board = List.duplicate(nil, 64)

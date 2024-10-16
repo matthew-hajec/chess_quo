@@ -1,9 +1,9 @@
 # test/game_test.exs
 defmodule GameTest do
   use ExUnit.Case
-  import EasyChess.Chess.Sigil
+  import ChessQuo.Chess.Sigil
 
-  alias EasyChess.Chess.{Game, Piece, Move}
+  alias ChessQuo.Chess.{Game, Piece, Move}
 
   doctest Game
 

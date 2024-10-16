@@ -1,7 +1,7 @@
 defmodule MoveTest do
   use ExUnit.Case
 
-  alias EasyChess.Chess.{Move, Piece}
+  alias ChessQuo.Chess.{Move, Piece}
 
   doctest Move
 

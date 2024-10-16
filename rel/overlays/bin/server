@@ -2,4 +2,4 @@
 set -eu
 
 cd -P -- "$(dirname -- "$0")"
-PHX_SERVER=true exec ./easy_chess start
+PHX_SERVER=true exec ./chess_quo start

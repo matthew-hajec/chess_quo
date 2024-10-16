@@ -1,7 +1,7 @@
 defmodule PieceTest do
   use ExUnit.Case
 
-  alias EasyChess.Chess.Piece
+  alias ChessQuo.Chess.Piece
 
   doctest Piece
 

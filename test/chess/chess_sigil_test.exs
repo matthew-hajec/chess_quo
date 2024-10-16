@@ -1,6 +1,6 @@
 defmodule ChessSigilTest do
   use ExUnit.Case
-  import EasyChess.Chess.Sigil
+  import ChessQuo.Chess.Sigil
 
-  doctest EasyChess.Chess.Sigil
+  doctest ChessQuo.Chess.Sigil
 end

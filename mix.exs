@@ -1,9 +1,9 @@
-defmodule EasyChess.MixProject do
+defmodule ChessQuo.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :easy_chess,
+      app: :chess_quo,
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -18,7 +18,7 @@ defmodule EasyChess.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {EasyChess.Application, []},
+      mod: {ChessQuo.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -70,10 +70,10 @@ defmodule EasyChess.MixProject do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind easy_chess", "esbuild easy_chess"],
+      "assets.build": ["tailwind chess_quo", "esbuild chess_quo"],
       "assets.deploy": [
-        "tailwind easy_chess --minify",
-        "esbuild easy_chess --minify",
+        "tailwind chess_quo --minify",
+        "esbuild chess_quo --minify",
         "phx.digest"
       ]
     ]

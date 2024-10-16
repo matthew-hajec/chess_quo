@@ -1,7 +1,7 @@
 defmodule ChessJsonTest do
   use ExUnit.Case
 
-  alias EasyChess.Chess.{Piece, Move, Game}
+  alias ChessQuo.Chess.{Piece, Move, Game}
 
   describe "encodes and decodes structures" do
     test "encodes and decodes the piece struct" do
@@ -12,7 +12,7 @@ defmodule ChessJsonTest do
 
     test "encodes and decodes the move struct" do
       piece = %Piece{color: :white, piece: :pawn}
-      move = %EasyChess.Chess.Move{from: 0, to: 0, piece: piece}
+      move = %ChessQuo.Chess.Move{from: 0, to: 0, piece: piece}
 
       assert move == Poison.decode!(Poison.encode!(move), as: %Move{})
     end

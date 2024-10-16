@@ -1,4 +1,4 @@
-# EasyChess
+# ChessQuo
 
 ## Production Environment Variables
 
