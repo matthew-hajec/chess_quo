@@ -1,18 +1,28 @@
 # EasyChess
 
-To start your Phoenix server:
+## Production Environment Variables
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+### 1. `REDIS_HOST`
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+- **Description**: The host address of the production Redis instance.
+- **Example**: `redis://39.31.120.11`
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+### 2. `REDIS_PORT`
 
-## Learn more
+- **Description** The port of the production Redis instance.
+- **Example**: `6379`
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+### 3. `REDIS_PASSWORD`
+
+- **Description**: The password of the production Redis instance.
+- **Example**: `password`
+
+### 4. `PORT`
+
+- **Description**: The port on which the server will listen.
+- **Example**: `3000`
+
+### 5. `SECRET_KEY_BASE`
+
+- **Description**: The secret key base for the production environment. (generated using `mix phx.gen.secret`)
+- **Example**: `a1b2c3d4e5f6g7h8i9j0`
