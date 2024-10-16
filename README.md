@@ -25,4 +25,4 @@
 ### 5. `SECRET_KEY_BASE`
 
 - **Description**: The secret key base for the production environment. (generated using `mix phx.gen.secret`)
-- **Example**: `a1b2c3d4e5f6g7h8i9j0`
+- **Example**: `0NXXoVvovCGUtL/B1ox/RRckWD/pJq5L5LdZAmcKRYE9fBctitwDbv2IZGArMaEX`
