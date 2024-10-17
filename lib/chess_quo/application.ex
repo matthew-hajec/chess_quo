@@ -32,7 +32,7 @@ defmodule ChessQuo.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    ChessQuo.Endpoint.config_change(changed, removed)
+    ChessQuoWeb.Endpoint.config_change(changed, removed)
     :ok
   end
 end
