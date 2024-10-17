@@ -118,8 +118,11 @@ defmodule ChessQuo.Lobby do
 
   def get_color(code, :host) do
     case Redix.command(:redix, ["GET", "lobby:#{code}:host_color"]) do
-      {:ok, color} ->
-        {:ok, color}
+      {:ok, "white"} ->
+        {:ok, :white}
+
+      {:ok, "black"} ->
+        {:ok, :black}
 
       {:error, reason} ->
         {:error, reason}
@@ -129,11 +132,11 @@ defmodule ChessQuo.Lobby do
   def get_color(code, :guest) do
     # Opposite of the host color
     case get_color(code, :host) do
-      {:ok, "white"} ->
-        {:ok, "black"}
+      {:ok, :white} ->
+        {:ok, :black}
 
-      {:ok, "black"} ->
-        {:ok, "white"}
+      {:ok, :black} ->
+        {:ok, :white}
 
       {:error, reason} ->
         {:error, reason}

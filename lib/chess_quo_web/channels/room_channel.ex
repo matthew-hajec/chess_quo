@@ -88,7 +88,7 @@ defmodule ChessQuoWeb.RoomChannel do
   defp process_move(game, from, to, promote_to, color, lobby_code, socket) do
     valid_moves = ChessQuo.Chess.MoveFinder.find_valid_moves(game)
 
-    case find_move(valid_moves, from, to, promote_to) do
+    case find_move(valid_moves, color, from, to, promote_to) do
       {:ok, move} ->
         apply_and_broadcast_move(game, move, color, lobby_code, socket)
 
@@ -97,9 +97,9 @@ defmodule ChessQuoWeb.RoomChannel do
     end
   end
 
-  defp find_move(valid_moves, from, to, promote_to) do
+  defp find_move(valid_moves, color, from, to, promote_to) do
     case Enum.find(valid_moves, fn move ->
-           move.from == from and move.to == to and move.promote_to == promote_to
+           move.from == from and move.to == to and move.promote_to == promote_to and move.piece.color == color
          end) do
       nil ->
         {:error, "invalid_move"}
@@ -110,7 +110,7 @@ defmodule ChessQuoWeb.RoomChannel do
   end
 
   defp ensure_player_turn(game, color) do
-    if Atom.to_string(game.turn) == color do
+    if game.turn == color do
       :ok
     else
       {:error, "not_your_turn"}
