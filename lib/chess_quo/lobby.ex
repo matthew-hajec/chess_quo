@@ -33,18 +33,21 @@ defmodule ChessQuo.Lobby do
            ["SETNX", "lobby:#{code}:guest_secret", guest_secret],
            ["SETNX", "lobby:#{code}:host_color", host_color],
            ["SETNX", "game:#{code}", Poison.encode!(game)],
+           # If a draw request is made, this key will be set to the player who made the request (host or guest)
+           ["SETNX", "game:#{code}:draw_request_by", ""],
 
            # Expire all keys after 1 hour
            ["EXPIRE", "lobby:#{code}:password", @lobby_expire_seconds],
            ["EXPIRE", "lobby:#{code}:host_secret", @lobby_expire_seconds],
            ["EXPIRE", "lobby:#{code}:guest_secret", @lobby_expire_seconds],
            ["EXPIRE", "lobby:#{code}:host_color", @lobby_expire_seconds],
-           ["EXPIRE", "game:#{code}", @lobby_expire_seconds]
+           ["EXPIRE", "game:#{code}", @lobby_expire_seconds],
+            ["EXPIRE", "game:#{code}:draw_request_by", @lobby_expire_seconds]
          ]) do
-      {:ok, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} ->
+      {:ok, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} ->
         {:ok, code, host_secret, guest_secret}
 
-      {:ok, [0, _, _, _, _, _, _, _, _, _]} ->
+      {:ok, [0, _, _, _, _, _, _, _, _, _, _, _]} ->
         # If the code already exists, try a new code.
         create_lobby(password, host_color)
 
@@ -157,6 +160,52 @@ defmodule ChessQuo.Lobby do
     case Redix.command(:redix, ["GET", "lobby:#{code}:guest_secret"]) do
       {:ok, secret} ->
         {:ok, secret}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def request_draw(code, :host) do
+    case Redix.command(:redix, ["SET", "game:#{code}:draw_request_by", "host"]) do
+      {:ok, "OK"} ->
+        :ok
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def request_draw(code, :guest) do
+    case Redix.command(:redix, ["SET", "game:#{code}:draw_request_by", "guest"]) do
+      {:ok, "OK"} ->
+        :ok
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def delete_draw_request(code) do
+    case Redix.command(:redix, ["SET", "game:#{code}:draw_request_by", ""]) do
+      {:ok, "OK"} ->
+        :ok
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def get_draw_request_by(code) do
+    case Redix.command(:redix, ["GET", "game:#{code}:draw_request_by"]) do
+      {:ok, "host"} ->
+        {:ok, :host}
+
+      {:ok, "guest"} ->
+        {:ok, :guest}
+
+      {:ok, ""} ->
+        {:ok, nil}
 
       {:error, reason} ->
         {:error, reason}

@@ -87,6 +87,54 @@ if (isGamePage()) {
         })
     }
 
+    function requestDraw(channel) {
+        return new Promise((resolve, reject) => {
+            channel.push("request_draw", {})
+                .receive("ok", resp => {
+                    resolve(resp);
+                })
+                .receive("error", resp => {
+                    reject(resp);
+                });
+        });
+    }
+
+    function acceptDraw(channel) {
+        return new Promise((resolve, reject) => {
+            channel.push("accept_draw", {})
+                .receive("ok", resp => {
+                    resolve(resp);
+                })
+                .receive("error", resp => {
+                    reject(resp);
+                });
+        });
+    }
+
+    function denyDraw(channel) {
+        return new Promise((resolve, reject) => {
+            channel.push("deny_draw", {})
+                .receive("ok", resp => {
+                    resolve(resp);
+                })
+                .receive("error", resp => {
+                    reject(resp);
+                });
+        });
+    }
+
+    function resign(channel) {
+        return new Promise((resolve, reject) => {
+            channel.push("resign", {})
+                .receive("ok", resp => {
+                    resolve(resp);
+                })  
+                .receive("error", resp => {
+                    reject(resp);
+                });
+        });
+    }
+
     function closeLoader() {
         const loaderElem = document.querySelector("#loader");
         loaderElem.style.display = "none";
@@ -172,78 +220,135 @@ if (isGamePage()) {
         });
     }
 
+    // Queries the player for confirmation
+    // Returns a boolean representing the player's choice (true for yes, false for no)
+    function queryConfirmation(header, message) {
+        const confirmationMenuElem = document.getElementById("confirmation-menu");
+        const confirmationHeaderElem = document.getElementById("confirmation-header");
+        const confirmationMessageElem = document.getElementById("confirmation-message");
+
+        confirmationHeaderElem.textContent = header;
+        confirmationMessageElem.textContent = message;
+
+        confirmationMenuElem.style.display = "flex";
+
+        return new Promise((resolve, reject) => {
+            function onClick(event) {
+                const confirmationButton = event.target.closest(".confirmation-button");
+                if (!confirmationButton) {
+                    return;
+                }
+
+                const choice = confirmationButton.getAttribute("data-choice");
+                confirmationMenuElem.style.display = "none";
+                document.removeEventListener("click", onClick);
+                resolve(choice === "yes");
+            }
+
+            document.addEventListener("click", onClick);
+        })
+    }
+
     // Wrapper for game logic using async/await
     async function main() {
         const cookies = parseCookies();
         const playerColor = cookies.current_game_color;
+        const playerRole = cookies.current_game_role;
 
         // State variables
         let currentlySelectedSquare = null; // Index of the currently selected square, if any, else null
 
-        try {
-            const channel = await connectToGame(cookies);
-            const gameState = await getGameState(channel);
-            closeLoader();
+        const channel = await connectToGame(cookies);
+        const gameState = await getGameState(channel);
+        closeLoader();
+        renderGameState(gameState);
+
+        // Handler for when the game state is updated
+        channel.on("game_state_updated", async (resp) => {
+            const gameState = JSON.parse(resp.game);
             renderGameState(gameState);
+        });
 
-            // Handler for when the game state is updated
-            channel.on("game_state_updated", async (resp) => {
-                const gameState = JSON.parse(resp.game);
-                renderGameState(gameState);
-            });
+        // Handler for when the game is over
+        channel.on("game_over", async (resp) => {
+            alert("Game Over! " + resp.reason);
+        });
 
-            // Handler for when the game is over
-            channel.on("game_over", async (resp) => {
-                alert("Game Over! " + resp.reason);
-            });
+        // Handler for when the opponent has requested a draw
+        channel.on("draw_requested", async (resp) => {
+            const isOpponent = resp.role !== playerRole;
+            if (!isOpponent) {
+                return;
+            }
 
-            // Handler for when a square is clicked
-            document.addEventListener("click", async (event) => {
-                // Find the square that was clicked
-                const squareElem = event.target.closest("[data-square-index]");
-                if (!squareElem) {
-                    return;
-                }
-            
-                // Get the index of the square that was clicked
-                const squareIndex = parseInt(squareElem.getAttribute("data-square-index"));
-            
-                // Determine if the square is a valid move from the currently selected square
-                const isValidMove = squareElem.classList.contains("valid-move");
+            const confirmed = await queryConfirmation("Draw Request", "Your opponent has requested a draw. Do you accept?");
+            if (confirmed) {
+                await acceptDraw(channel);
+            } else {
+                await denyDraw(channel);
+            }
+        });
 
-                // If no square is selected, select the clicked square
-                if (isValidMove) {
-                    // Check if the clicked square is a promotion move
-                    const isPromotion = squareElem.classList.contains("promotion");
+        // Handler for when a square is clicked
+        document.addEventListener("click", async (event) => {
+            // Find the square that was clicked
+            const squareElem = event.target.closest("[data-square-index]");
+            if (!squareElem) {
+                return;
+            }
+        
+            // Get the index of the square that was clicked
+            const squareIndex = parseInt(squareElem.getAttribute("data-square-index"));
+        
+            // Determine if the square is a valid move from the currently selected square
+            const isValidMove = squareElem.classList.contains("valid-move");
 
-                    if (isPromotion) {
-                        // If it's a promotion move, query the player for the piece to promote to
-                        const promotionPiece = await queryPromotionPiece();
-                        await makeMove(channel, currentlySelectedSquare, squareIndex, promotionPiece);
-                    } else {
-                        // If it's a regular move, make the move
-                        await makeMove(channel, currentlySelectedSquare, squareIndex);
-                    }
+            // If no square is selected, select the clicked square
+            if (isValidMove) {
+                // Check if the clicked square is a promotion move
+                const isPromotion = squareElem.classList.contains("promotion");
 
-                    // Unselect the currently selected square
-                    removeAllSquareHighlights();
-                    currentlySelectedSquare = null;
+                if (isPromotion) {
+                    // If it's a promotion move, query the player for the piece to promote to
+                    const promotionPiece = await queryPromotionPiece();
+                    await makeMove(channel, currentlySelectedSquare, squareIndex, promotionPiece);
                 } else {
-                    // Unselect the currently selected square
-                    removeAllSquareHighlights();
-                    currentlySelectedSquare = null;
-
-                    // If the square has a piece of the player's color, select it
-                    if (squareElem.classList.contains(playerColor)) {
-                        currentlySelectedSquare = squareIndex;
-                        squareElem.classList.add("selected");
-                        await findAndHighlightValidMoves(channel, squareIndex);
-                    }
+                    // If it's a regular move, make the move
+                    await makeMove(channel, currentlySelectedSquare, squareIndex);
                 }
-            });
-        } catch (err) {
-            console.error("An Error Occurred", err);
-        }
+
+                // Unselect the currently selected square
+                removeAllSquareHighlights();
+                currentlySelectedSquare = null;
+            } else {
+                // Unselect the currently selected square
+                removeAllSquareHighlights();
+                currentlySelectedSquare = null;
+
+                // If the square has a piece of the player's color, select it
+                if (squareElem.classList.contains(playerColor)) {
+                    currentlySelectedSquare = squareIndex;
+                    squareElem.classList.add("selected");
+                    await findAndHighlightValidMoves(channel, squareIndex);
+                }
+            }
+        });
+
+        const resignButtonElem = document.getElementById("resign-button");
+        resignButtonElem.addEventListener("click", async (event) => {
+            const confirmed = await queryConfirmation("Resign Game", "Are you sure you want to resign?");
+            if (confirmed) {
+                await resign(channel);
+            }
+        });
+
+        const drawButtonElem = document.getElementById("draw-button");
+        drawButtonElem.addEventListener("click", async (event) => {
+            const confirmed = await queryConfirmation("Request Draw", "Are you sure you want to request a draw?");
+            if (confirmed) {
+                await requestDraw(channel);
+            }
+        });
     }
 
     // Run the game logic
