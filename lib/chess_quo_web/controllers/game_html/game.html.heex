@@ -12,6 +12,7 @@
   }
 </style>
 <!-- Loader -->
+<!-- Shown by default, hidden by setting the display style of #loader to "none" -->
 <div
   id="loader"
   class="flex items-center justify-center fixed inset-0 bg-white z-50"
@@ -24,6 +25,9 @@
   </div>
 </div>
 <!-- Promotion Menu -->
+<!-- Used for promoting a pawn to another piece -->
+<!-- To show the menu, set the display style of #promotion-menu to "flex", to hide, set it to "none" -->
+<!-- The buttons have the class "promotion-button" and the "data-piece" attribute set to the piece to promote to -->
 <div
   id="promotion-menu"
   class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
@@ -93,6 +97,8 @@
 </div>
 <!-- Confirmation Menu -->
 <!-- Used for general confirmation messages, modifiable via JS by setting the content of #confirmation-message and #confirmation-header -->
+<!-- The buttons have the class "confirmation-button" and the "data-choice" attribute set to either "yes" or "no" -->
+<!-- To show the menu, set the display style of #confirmation-menu to "flex", to hide, set it to "none" -->
 <div
   id="confirmation-menu"
   class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
@@ -124,6 +130,9 @@
   </div>
 </div>
 <!-- Game -->
+<!-- Contains the game board and controls -->
+<!-- The board is flipped so that the player's color is always at the bottom -->
+<!-- Each square has a data-square-index attribute that corresponds to the index on the board (a1 => 0, b1 => 1, etc) -->
 <div id="loaded">
   <div class="max-w-screen-lg mx-auto mt-8 mb-4 text-center">
     <h1 class="text-3xl font-bold text-gray-800">Chess Game</h1>
