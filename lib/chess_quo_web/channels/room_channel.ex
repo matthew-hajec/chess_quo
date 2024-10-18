@@ -68,14 +68,21 @@ defmodule ChessQuoWeb.RoomChannel do
     role = socket.assigns[:role]
     from = params["from"]
     to = params["to"]
-    promote_to = params["is_promotion"] || nil
+    promote_to = params["promote_to"] || nil
+
+    promote_to =
+      if promote_to != nil do
+        String.to_existing_atom(promote_to)
+      else
+        nil
+      end
 
     with true <- is_valid_board_index?(from),
          true <- is_valid_board_index?(to),
          {:ok, game} <- ChessQuo.Lobby.get_game(lobby_code),
          {:ok, color} <- ChessQuo.Lobby.get_color(lobby_code, role),
          :ok <- ensure_player_turn(game, color) do
-          process_move(game, from, to, promote_to, color, lobby_code, socket)
+      process_move(game, from, to, promote_to, color, lobby_code, socket)
     else
       false ->
         {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
@@ -99,7 +106,8 @@ defmodule ChessQuoWeb.RoomChannel do
 
   defp find_move(valid_moves, color, from, to, promote_to) do
     case Enum.find(valid_moves, fn move ->
-           move.from == from and move.to == to and move.promote_to == promote_to and move.piece.color == color
+           move.from == from and move.to == to and move.promote_to == promote_to and
+             move.piece.color == color
          end) do
       nil ->
         {:error, "invalid_move"}
@@ -122,14 +130,14 @@ defmodule ChessQuoWeb.RoomChannel do
 
     case ChessQuo.Lobby.save_game(lobby_code, new_game) do
       {:ok, _} ->
-        broadcast!(socket, "game_state", %{game: Poison.encode!(new_game)})
+        broadcast!(socket, "game_state_updated", %{game: Poison.encode!(new_game)})
 
         # Check the game condition
         game_condition = ChessQuo.Chess.MoveFinder.game_condition(new_game)
 
         case game_condition do
           :checkmate ->
-            player_color_uc = String.capitalize(color)
+            player_color_uc = String.capitalize(Atom.to_string(color))
             broadcast!(socket, "game_over", %{reason: "#{player_color_uc} checkmated!"})
 
           :stalemate ->

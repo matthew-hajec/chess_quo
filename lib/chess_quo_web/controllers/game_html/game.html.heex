@@ -57,22 +57,34 @@
 
     <div class="grid grid-cols-2 gap-6">
       <!-- Queen -->
-      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+      <button
+        data-piece="queen"
+        class="promotion-button w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none"
+      >
         <img src={queen_url} alt="Queen" class="w-16 h-16 mb-2" />
         <span class="text-lg font-medium text-gray-700">Queen</span>
       </button>
       <!-- Rook -->
-      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+      <button
+        data-piece="rook"
+        class="promotion-button w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none"
+      >
         <img src={rook_url} alt="Rook" class="w-16 h-16 mb-2" />
         <span class="text-lg font-medium text-gray-700">Rook</span>
       </button>
       <!-- Bishop -->
-      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+      <button
+        data-piece="bishop"
+        class="promotion-button w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none"
+      >
         <img src={bishop_url} alt="Bishop" class="w-16 h-16 mb-2" />
         <span class="text-lg font-medium text-gray-700">Bishop</span>
       </button>
       <!-- Knight -->
-      <button class="w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none">
+      <button
+        data-piece="knight"
+        class="promotion-button w-full flex flex-col items-center bg-slate-200 rounded-lg p-4 hover:bg-slate-300 focus:outline-none"
+      >
         <img src={knight_url} alt="Knight" class="w-16 h-16 mb-2" />
         <span class="text-lg font-medium text-gray-700">Knight</span>
       </button>
@@ -80,7 +92,7 @@
   </div>
 </div>
 <!-- Game -->
-<div id="loaded" style="display: none;">
+<div id="loaded">
   <div class="max-w-screen-lg mx-auto mt-8 mb-4 text-center">
     <h1 class="text-3xl font-bold text-gray-800">Chess Game</h1>
 

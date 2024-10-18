@@ -3,6 +3,13 @@ defmodule ChessQuoWeb.LobbyController do
   use ChessQuoWeb, :controller
 
   def help_set_game_cookies(conn, role, code, secret, color) do
+    color =
+      if color == :white do
+        "white"
+      else
+        "black"
+      end
+
     conn
     |> put_resp_cookie("current_game_secret", secret, http_only: false)
     |> put_resp_cookie("current_game_code", code, http_only: false)
@@ -34,6 +41,13 @@ defmodule ChessQuoWeb.LobbyController do
   defp handle_post_create_lobby(conn, params) do
     password = params["lobby_password"]
     host_color = params["host_color"]
+
+    host_color =
+      if host_color == "white" do
+        :white
+      else
+        :black
+      end
 
     case ChessQuo.Lobby.create_lobby(password, host_color) do
       {:ok, code, hs, _gs} ->
