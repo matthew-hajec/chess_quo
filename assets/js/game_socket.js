@@ -19,6 +19,18 @@ const PIECE_IMAGES = {
   }
 }
 
+// Loads the images into the browser cache
+function preloadImages() {
+    for (const color in PIECE_IMAGES) {
+        for (const piece in PIECE_IMAGES[color]) {
+            const img = new Image();
+            img.src = PIECE_IMAGES[color][piece];
+        }
+    }
+}   
+
+preloadImages(); // Preload on every page, if they are cached, this will not require a network request
+
 function isGamePage() {
     return window.location.pathname.includes("/play/");
 }
