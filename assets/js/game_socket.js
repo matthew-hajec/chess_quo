@@ -100,6 +100,10 @@ if (isGamePage()) {
             const piece = gameState.board[i];
             const squareElem = document.querySelector(`[data-square-index="${i}"]`);
 
+            // If the square has a color class (black or white), remove it
+            squareElem.classList.remove("black");
+            squareElem.classList.remove("white");
+
             // Remove any existing pieces from the square
             squareElem.innerHTML = "";
 
