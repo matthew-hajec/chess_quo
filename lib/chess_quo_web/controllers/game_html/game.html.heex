@@ -129,6 +129,28 @@
     </div>
   </div>
 </div>
+<!-- Notification Menu -->
+<!-- Used for general notification messages, modifiable via JS by setting the content of #notification-message and #notification-header -->
+<!-- By default, a button #notification-close is displayed, this can be disabled by setting the display property of #notification-control to "none" -->
+<!-- To show the menu, set the display style of #notification-menu to "flex", to hide, set it to "none" -->
+<div id="notification-menu" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+style="display: none;">
+  <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+    <h2 id="notification-header" class="text-2xl font-bold text-gray-800 text-center mb-4">
+      <!-- The notification header will be inserted here via JavaScript -->
+      Notification
+    </h2>
+    <p id="notification-message" class="text-center text-gray-600 mb-6">
+      <!-- The notification message will be inserted here via JavaScript -->
+      No message set. This is an error.
+    </p>
+    <div id="notification-control" class="flex justify-center space-x-4">
+      <button id="notification-close" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
 <!-- Game -->
 <!-- Contains the game board and controls -->
 <!-- The board is flipped so that the player's color is always at the bottom -->

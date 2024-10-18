@@ -261,6 +261,32 @@ if (isGamePage()) {
         })
     }
 
+    function showNotification(header, message, is_closeable) {
+        const notificationMenuElem = document.getElementById("notification-menu");
+        const notificationHeaderElem = document.getElementById("notification-header");
+        const notificationMessageElem = document.getElementById("notification-message");
+        const notificationControlElem = document.getElementById("notification-control");
+        const notificationCloseButtonElem = document.getElementById("notification-close");
+
+        if (!is_closeable) {
+            // If the notification is not closeable, hide the close button
+            notificationControlElem.style.display = "none";
+        } else {
+            // Otherwise, show the close button and handle closing
+            notificationControlElem.style.display = "flex";
+            function onClick(event) {
+                notificationMenuElem.style.display = "none";
+                document.removeEventListener("click", onClick);
+            }
+            notificationCloseButtonElem.addEventListener("click", onClick);
+        }
+
+        notificationHeaderElem.textContent = header;
+        notificationMessageElem.textContent = message;
+
+        notificationMenuElem.style.display = "flex";
+    }
+
     // Wrapper for game logic using async/await
     async function main() {
         const cookies = parseCookies();
@@ -283,7 +309,8 @@ if (isGamePage()) {
 
         // Handler for when the game is over
         channel.on("game_over", async (resp) => {
-            alert("Game Over! " + resp.reason);
+            // Display a notification with the game result
+            showNotification("Game Over", resp.message, true);
         });
 
         // Handler for when the opponent has requested a draw

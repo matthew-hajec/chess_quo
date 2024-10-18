@@ -240,7 +240,7 @@ defmodule ChessQuoWeb.RoomChannel do
     with {:ok, game} <- ChessQuo.Lobby.get_game(lobby_code),
          game <- ChessQuo.Chess.Game.end_game(game, reason),
          {:ok, _} <- ChessQuo.Lobby.save_game(lobby_code, game) do
-      broadcast!(socket, "game_over", %{reason: game_over_message(reason)})
+      broadcast!(socket, "game_over", %{message: game_over_message(reason)})
 
       {:reply, {:ok, true}, socket}
     else
