@@ -5,8 +5,8 @@ defmodule ChessQuo.Lobby do
 
   @lobby_charset "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   @lobby_code_length 8
-  # Lobby expires after 1 hour
-  @lobby_expire_seconds 3600
+  # Lobby expires after 4 hours
+  @lobby_expire_seconds 3600 * 4
 
   defp generate_code do
     @lobby_charset
