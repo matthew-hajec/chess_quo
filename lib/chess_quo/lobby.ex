@@ -42,7 +42,7 @@ defmodule ChessQuo.Lobby do
            ["EXPIRE", "lobby:#{code}:guest_secret", @lobby_expire_seconds],
            ["EXPIRE", "lobby:#{code}:host_color", @lobby_expire_seconds],
            ["EXPIRE", "game:#{code}", @lobby_expire_seconds],
-            ["EXPIRE", "game:#{code}:draw_request_by", @lobby_expire_seconds]
+           ["EXPIRE", "game:#{code}:draw_request_by", @lobby_expire_seconds]
          ]) do
       {:ok, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} ->
         {:ok, code, host_secret, guest_secret}

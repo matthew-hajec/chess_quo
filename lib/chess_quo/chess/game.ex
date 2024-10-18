@@ -84,7 +84,8 @@ defmodule ChessQuo.Chess.Game do
                 ],
             previous_move: nil,
             move_history: [],
-            status: :ongoing # Can be :ongoing, :white_victory, :black_victory, or :draw
+            # Can be :ongoing, :white_victory, :black_victory, or :draw
+            status: :ongoing
 
   defimpl Poison.Decoder do
     def decode(
@@ -120,11 +121,12 @@ defmodule ChessQuo.Chess.Game do
           Poison.decode!(Poison.encode!(move), as: %Move{})
         end)
 
-      status = if is_binary(status) do
-        String.to_existing_atom(status)
-      else
-        status
-      end
+      status =
+        if is_binary(status) do
+          String.to_existing_atom(status)
+        else
+          status
+        end
 
       %ChessQuo.Chess.Game{
         turn: turn,
@@ -169,8 +171,7 @@ defmodule ChessQuo.Chess.Game do
       | board: new_board,
         turn: next_turn(game.turn),
         previous_move: move,
-        move_history: move_history,
-
+        move_history: move_history
     }
   end
 

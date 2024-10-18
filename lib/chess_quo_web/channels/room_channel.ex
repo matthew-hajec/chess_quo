@@ -124,8 +124,10 @@ defmodule ChessQuoWeb.RoomChannel do
     else
       {:ok, nil} ->
         {:reply, {:error, %{reason: "no_draw_request"}}, socket}
+
       {:ok, ^role} ->
         {:reply, {:error, %{reason: "cannot_accept_own_draw_request"}}, socket}
+
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
     end
@@ -160,7 +162,7 @@ defmodule ChessQuoWeb.RoomChannel do
 
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
-      end
+    end
   end
 
   defp process_move(game, from, to, promote_to, color, lobby_code, socket) do
@@ -237,8 +239,7 @@ defmodule ChessQuoWeb.RoomChannel do
     # Get the game state
     with {:ok, game} <- ChessQuo.Lobby.get_game(lobby_code),
          game <- ChessQuo.Chess.Game.end_game(game, reason),
-         {:ok, _} <- ChessQuo.Lobby.save_game(lobby_code, game)
-    do
+         {:ok, _} <- ChessQuo.Lobby.save_game(lobby_code, game) do
       broadcast!(socket, "game_over", %{reason: game_over_message(reason)})
 
       {:reply, {:ok, true}, socket}
