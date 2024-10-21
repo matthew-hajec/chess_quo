@@ -26,3 +26,8 @@
 
 - **Description**: The secret key base for the production environment. (generated using `mix phx.gen.secret`)
 - **Example**: `0NXXoVvovCGUtL/B1ox/RRckWD/pJq5L5LdZAmcKRYE9fBctitwDbv2IZGArMaEX`
+
+### 6. `PHX_HOST`
+
+- **Description**: The host address of the production Phoenix server.
+- **Example**: `chessquo.com`
