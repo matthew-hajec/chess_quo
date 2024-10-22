@@ -18,7 +18,9 @@ defmodule ChessQuoWeb.LobbyController do
   end
 
   def get_create_lobby(conn, _params) do
-    render(conn, :new_lobby)
+    conn
+    |> assign(:page_title, "Create Lobby")
+    |> render(:new_lobby)
   end
 
   @post_create_lobby_params_schema %{
@@ -65,6 +67,8 @@ defmodule ChessQuoWeb.LobbyController do
   end
 
   def get_join_lobby(conn, params) do
+    conn = conn.assign(:page_title, "Join Lobby")
+
     code = params["code"]
 
     case ChessQuo.Lobby.lobby_exists?(code) do
