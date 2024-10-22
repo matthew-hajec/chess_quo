@@ -67,13 +67,13 @@ defmodule ChessQuoWeb.LobbyController do
   end
 
   def get_join_lobby(conn, params) do
-    conn = conn.assign(:page_title, "Join Lobby")
-
     code = params["code"]
 
     case ChessQuo.Lobby.lobby_exists?(code) do
       {:ok, true} ->
-        render(conn, :join_lobby)
+        conn
+        |> assign(:page_title, "Join Lobby")
+        |> render(:join_lobby)
 
       {:ok, false} ->
         conn
