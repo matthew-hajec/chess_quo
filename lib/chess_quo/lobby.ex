@@ -1,12 +1,187 @@
 defmodule ChessQuo.Lobby do
   require Logger
 
-  alias ChessQuo.Chess.Game
+  alias ChessQuo.Lobby, as: Lobby
+  alias ChessQuo.Chess.Game, as: Game
+  alias ChessQuo.GameTypes, as: Types
 
   @lobby_charset "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   @lobby_code_length 8
   # Lobby expires after 4 hours
   @lobby_expire_seconds 3600 * 4
+
+  @type t :: %Lobby{
+          code: String.t(),
+          password: String.t(),
+          host_secret: String.t(),
+          guest_secret: String.t(),
+          host_color: Types.color(),
+          game: Game.t(),
+          draw_request_by: Types.player_type() | nil,
+          guest_joined: boolean()
+        }
+
+  defstruct [
+    :code,
+    :password,
+    :host_secret,
+    :guest_secret,
+    :host_color,
+    :game,
+    :draw_request_by,
+    :guest_joined
+  ]
+
+  @spec new(String.t(), Types.color()) :: Lobby.t()
+  def new(password, host_color) do
+    %Lobby{
+      code: generate_code(),
+      password: password,
+      host_secret: generate_secret(),
+      guest_secret: generate_secret(),
+      host_color: host_color,
+      game: Game.new(),
+      draw_request_by: nil,
+      guest_joined: false
+    }
+  end
+
+  @spec save(Lobby.t()) ::
+          :ok | {:error, atom()}
+  def save(lobby) do
+    # Build the list of commands to send to Redis in a transaction pipeline
+    commands = [
+      ["SET", "lobby:#{lobby.code}:password", lobby.password, "EX", @lobby_expire_seconds],
+      ["SET", "lobby:#{lobby.code}:host_secret", lobby.host_secret, "EX", @lobby_expire_seconds],
+      [
+        "SET",
+        "lobby:#{lobby.code}:guest_secret",
+        lobby.guest_secret,
+        "EX",
+        @lobby_expire_seconds
+      ],
+      [
+        "SET",
+        "lobby:#{lobby.code}:host_color",
+        to_string(lobby.host_color),
+        "EX",
+        @lobby_expire_seconds
+      ],
+      [
+        "SET",
+        "lobby:#{lobby.code}:game",
+        Poison.encode!(lobby.game),
+        "EX",
+        @lobby_expire_seconds
+      ],
+      [
+        "SET",
+        "lobby:#{lobby.code}:draw_request_by",
+        to_string(lobby.draw_request_by),
+        "EX",
+        @lobby_expire_seconds
+      ],
+      ["SET", "lobby:#{lobby.code}:guest_joined", to_string(lobby.guest_joined)]
+    ]
+
+    # Redis returns "OK for successful SET commands
+    success_value = List.duplicate("OK", length(commands))
+
+    case Redix.transaction_pipeline(:redix, commands) do
+      {:ok, ^success_value} ->
+        :ok
+
+      # If we get an :ok tuple but not all "OK" replies, something failed.
+      {:ok, _} ->
+        {:error, :transaction_failed}
+
+      # Any Redis error or connection error is returned here.
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @spec load(String.t()) :: {:ok, Lobby.t()} | {:error, atom()}
+  def load(code) do
+    keys = [
+      "lobby:#{code}:password",
+      "lobby:#{code}:host_secret",
+      "lobby:#{code}:guest_secret",
+      "lobby:#{code}:host_color",
+      "lobby:#{code}:game",
+      "lobby:#{code}:draw_request_by",
+      "lobby:#{code}:guest_joined"
+    ]
+
+    # Retrieve all fields in one MGET command
+    case Redix.command(:redix, ["MGET" | keys]) do
+      {:ok,
+       [
+         password,
+         host_secret,
+         guest_secret,
+         host_color_str,
+         game_json,
+         draw_request_by_str,
+         guest_joined_str
+       ]} ->
+        # If any key is nil, this lobby code does not exist or is incomplete.
+        if Enum.any?(
+             [
+               password,
+               host_secret,
+               guest_secret,
+               host_color_str,
+               game_json,
+               draw_request_by_str,
+               guest_joined_str
+             ],
+             &is_nil/1
+           ) do
+          {:error, :not_found}
+        else
+          # Convert host_color back to an atom.
+          host_color = String.to_existing_atom(host_color_str)
+
+          # Decode the game JSON string back to the Game struct/map.
+          # Adjust if your Poison-encoded data needs special handling.
+          game = Poison.decode!(game_json, as: %Game{})
+
+          IO.puts(draw_request_by_str)
+
+          # Convert draw_request_by back to an atom or nil.
+          draw_request_by =
+            case draw_request_by_str do
+              "" -> nil
+              other -> String.to_existing_atom(other)
+            end
+
+          # Convert guest_joined back to a boolean.
+          guest_joined = guest_joined_str == "true"
+
+          # Build the Lobby struct.
+          lobby = %Lobby{
+            code: code,
+            password: password,
+            host_secret: host_secret,
+            guest_secret: guest_secret,
+            host_color: host_color,
+            game: game,
+            draw_request_by: draw_request_by,
+            guest_joined: guest_joined
+          }
+
+          {:ok, lobby}
+        end
+
+      {:ok, _unexpected} ->
+        # If the shape of the result is not what's expected, consider it missing.
+        {:error, :not_found}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
 
   defp generate_code do
     @lobby_charset
@@ -18,223 +193,5 @@ defmodule ChessQuo.Lobby do
   defp generate_secret do
     :crypto.strong_rand_bytes(24)
     |> Base.encode64()
-  end
-
-  def create_lobby(password, host_color) do
-    code = generate_code()
-    host_secret = generate_secret()
-    guest_secret = generate_secret()
-    game = Game.new()
-
-    # Perform a MULTI/EXEC transaction to ensure that all keys are set atomically
-    case Redix.transaction_pipeline(:redix, [
-           ["SETNX", "lobby:#{code}:password", password],
-           ["SETNX", "lobby:#{code}:host_secret", host_secret],
-           ["SETNX", "lobby:#{code}:guest_secret", guest_secret],
-           ["SETNX", "lobby:#{code}:host_color", host_color],
-           ["SETNX", "game:#{code}", Poison.encode!(game)],
-           # If a draw request is made, this key will be set to the player who made the request (host or guest)
-           ["SETNX", "game:#{code}:draw_request_by", ""],
-
-           # Expire all keys after 1 hour
-           ["EXPIRE", "lobby:#{code}:password", @lobby_expire_seconds],
-           ["EXPIRE", "lobby:#{code}:host_secret", @lobby_expire_seconds],
-           ["EXPIRE", "lobby:#{code}:guest_secret", @lobby_expire_seconds],
-           ["EXPIRE", "lobby:#{code}:host_color", @lobby_expire_seconds],
-           ["EXPIRE", "game:#{code}", @lobby_expire_seconds],
-           ["EXPIRE", "game:#{code}:draw_request_by", @lobby_expire_seconds]
-         ]) do
-      {:ok, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]} ->
-        {:ok, code, host_secret, guest_secret}
-
-      {:ok, [0, _, _, _, _, _, _, _, _, _, _, _]} ->
-        # If the code already exists, try a new code.
-        create_lobby(password, host_color)
-
-      {:error, reason} ->
-        Logger.error("Failed to create lobby: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-
-  def set_guest_joined(code) do
-    # Use a transaction to set the guest as joined
-    # and expire the keys after 1 hour
-    case Redix.transaction_pipeline(:redix, [
-           ["SETNX", "lobby:#{code}:guest_joined", "1"],
-           ["EXPIRE", "lobby:#{code}:guest_joined", @lobby_expire_seconds]
-         ]) do
-      {:ok, [1, 1]} ->
-        :ok
-
-      {:ok, [0, _]} ->
-        {:error, :already_joined}
-
-      {:error, reason} ->
-        Logger.error("Failed to set guest as joined: #{inspect(reason)}")
-        {:error, reason}
-    end
-  end
-
-  def is_valid_secret?(code, :host, secret) do
-    case Redix.command(:redix, ["GET", "lobby:#{code}:host_secret"]) do
-      {:ok, value} ->
-        {:ok, secret == value}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def is_valid_secret?(code, :guest, secret) do
-    case Redix.command(:redix, ["GET", "lobby:#{code}:guest_secret"]) do
-      {:ok, value} ->
-        {:ok, secret == value}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def correct_password?(code, password) do
-    case Redix.command(:redix, ["GET", "lobby:#{code}:password"]) do
-      {:ok, value} ->
-        {:ok, password == value}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def lobby_exists?(code) do
-    case Redix.command(:redix, ["EXISTS", "lobby:#{code}:password"]) do
-      {:ok, 1} ->
-        {:ok, true}
-
-      {:ok, 0} ->
-        {:ok, false}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def get_color(code, :host) do
-    case Redix.command(:redix, ["GET", "lobby:#{code}:host_color"]) do
-      {:ok, "white"} ->
-        {:ok, :white}
-
-      {:ok, "black"} ->
-        {:ok, :black}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def get_color(code, :guest) do
-    # Opposite of the host color
-    case get_color(code, :host) do
-      {:ok, :white} ->
-        {:ok, :black}
-
-      {:ok, :black} ->
-        {:ok, :white}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def get_secret(code, :host) do
-    case Redix.command(:redix, ["GET", "lobby:#{code}:host_secret"]) do
-      {:ok, secret} ->
-        {:ok, secret}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def get_secret(code, :guest) do
-    case Redix.command(:redix, ["GET", "lobby:#{code}:guest_secret"]) do
-      {:ok, secret} ->
-        {:ok, secret}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def request_draw(code, :host) do
-    case Redix.command(:redix, ["SET", "game:#{code}:draw_request_by", "host"]) do
-      {:ok, "OK"} ->
-        :ok
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def request_draw(code, :guest) do
-    case Redix.command(:redix, ["SET", "game:#{code}:draw_request_by", "guest"]) do
-      {:ok, "OK"} ->
-        :ok
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def delete_draw_request(code) do
-    case Redix.command(:redix, ["SET", "game:#{code}:draw_request_by", ""]) do
-      {:ok, "OK"} ->
-        :ok
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def get_draw_request_by(code) do
-    case Redix.command(:redix, ["GET", "game:#{code}:draw_request_by"]) do
-      {:ok, "host"} ->
-        {:ok, :host}
-
-      {:ok, "guest"} ->
-        {:ok, :guest}
-
-      {:ok, ""} ->
-        {:ok, nil}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def get_game(code) do
-    case Redix.command(:redix, ["GET", "game:#{code}"]) do
-      {:ok, encoded_game} ->
-        {:ok, Poison.decode!(encoded_game, as: %Game{})}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
-  end
-
-  def save_game(code, game) do
-    case Poison.encode(game) do
-      {:ok, encoded_game} ->
-        case Redix.command(:redix, ["SET", "game:#{code}", encoded_game]) do
-          {:ok, _} ->
-            {:ok, game}
-
-          {:error, reason} ->
-            {:error, reason}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
-    end
   end
 end

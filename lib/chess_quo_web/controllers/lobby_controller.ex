@@ -2,6 +2,8 @@ defmodule ChessQuoWeb.LobbyController do
   require Logger
   use ChessQuoWeb, :controller
 
+  alias ChessQuo.Lobby, as: Lobby
+
   def help_set_game_cookies(conn, role, code, secret, color) do
     color =
       if color == :white do
@@ -51,14 +53,19 @@ defmodule ChessQuoWeb.LobbyController do
         :black
       end
 
-    case ChessQuo.Lobby.create_lobby(password, host_color) do
-      {:ok, code, hs, _gs} ->
-        conn
-        |> help_set_game_cookies("host", code, hs, host_color)
-        |> redirect(to: "/play/#{code}")
-
+    with lobby <- Lobby.new(password, host_color),
+         :ok <- Lobby.save(lobby) do
+      conn
+      |> help_set_game_cookies(
+        "host",
+        lobby.code,
+        lobby.host_secret,
+        to_string(lobby.host_color)
+      )
+      |> redirect(to: "/play/#{lobby.code}")
+    else
       {:error, reason} ->
-        Logger.error("Error creating lobby: #{inspect(reason)}")
+        Logger.error("Error saving lobby: #{inspect(reason)}")
 
         conn
         |> put_flash(:error, "Error creating lobby.")
@@ -69,13 +76,13 @@ defmodule ChessQuoWeb.LobbyController do
   def get_join_lobby(conn, params) do
     code = params["code"]
 
-    case ChessQuo.Lobby.lobby_exists?(code) do
-      {:ok, true} ->
+    case Lobby.load(code) do
+      {:ok, _} ->
         conn
         |> assign(:page_title, "Join Lobby")
         |> render(:join_lobby)
 
-      {:ok, false} ->
+      {:error, :not_found} ->
         conn
         |> put_flash(:error, "No lobby exists with the given code.")
         |> redirect(to: "/")
@@ -109,29 +116,28 @@ defmodule ChessQuoWeb.LobbyController do
     code = params["code"]
     password = params["lobby_password"]
 
-    with {:ok, true} <- ChessQuo.Lobby.correct_password?(code, password),
-         :ok <- ChessQuo.Lobby.set_guest_joined(code),
-         {:ok, guest_secret} <- ChessQuo.Lobby.get_secret(code, :guest),
-         {:ok, guest_color} <- ChessQuo.Lobby.get_color(code, :guest) do
-      conn
-      |> help_set_game_cookies("guest", code, guest_secret, guest_color)
-      |> put_flash(:info, "Lobby Joined")
-      |> redirect(to: "/play/#{code}")
-    else
-      {:ok, false} ->
-        conn
-        |> put_flash(:error, "Invalid Password")
-        |> redirect(to: "/lobby/join/#{code}")
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        if lobby.guest_joined == true do
+          conn
+          |> put_flash(:error, "A guest has already joined this lobby from another device.")
+          |> redirect(to: "/")
+        else
+          if lobby.password != password do
+            conn
+            |> put_flash(:error, "Invalid Password")
+            |> redirect(tp: "lobby/join/#{code}")
+          else
+            # The user can join this lobby
+            color = if lobby.host_color == :white, do: :black, else: :white
 
-      {:error, :already_joined} ->
-        conn
-        |> put_flash(:error, "A guest has already joined this lobby from another device.")
-        |> redirect(to: "/")
-
-      _ ->
-        conn
-        |> put_flash(:error, "Error joining lobby")
-        |> redirect(to: "/")
+            conn
+            |> help_set_game_cookies("guest", code, lobby.guest_secret, color)
+            |> put_flash(:info, "Lobby joined")
+            # CHANGEME!
+            |> redirect(to: "/play/#{code}")
+          end
+        end
     end
   end
 end
