@@ -1,19 +1,27 @@
 defmodule ChessQuo.Chess.Move do
+  @moduledoc """
+  Contains the definition of a move
+  """
+
+  alias ChessQuo.Chess.Move, as: Move
+  alias ChessQuo.Chess.Piece, as: Piece
+  alias ChessQuo.GameTypes, as: Types
+
+  @type t :: %Move{
+          from: non_neg_integer(),
+          to: non_neg_integer(),
+          piece: %Piece{},
+          captures: non_neg_integer(),
+          castle_side: Types.castle_side(),
+          promote_to: Types.piece_type()
+        }
+
   @derive [Poison.Encoder]
-  defstruct from: 0,
-            to: 0,
-            piece: nil,
-            # Optional, will be the integer index of the piece captured
-            captures: nil,
-            # Optional, will be `:king` or `:queen` for castling moves
-            castle_side: nil,
-            # MUST be set when a pawn promotes, this will be the type of the piece
-            # (:rook, :queen, :knight, or :bishop)
-            promote_to: nil
+  defstruct [:from, :to, :piece, :captures, :castle_side, :promote_to]
 
   defimpl Poison.Decoder do
     def decode(
-          %ChessQuo.Chess.Move{
+          %Move{
             from: from,
             to: to,
             piece: piece,
@@ -23,9 +31,9 @@ defmodule ChessQuo.Chess.Move do
           },
           _opts
         ) do
-      piece = Poison.decode!(Poison.encode!(piece), as: %ChessQuo.Chess.Piece{})
+      piece = Poison.decode!(Poison.encode!(piece), as: %Piece{})
 
-      %ChessQuo.Chess.Move{
+      %Move{
         from: from,
         to: to,
         piece: piece,
@@ -39,8 +47,15 @@ defmodule ChessQuo.Chess.Move do
   @doc """
   Creates a new move.
   """
+  @spec new(
+          non_neg_integer(),
+          non_neg_integer(),
+          %Piece{},
+          Types.castle_side() | nil,
+          Types.piece_type() | nil
+        ) :: %Move{}
   def new(from, to, piece, captures \\ nil, castle_side \\ nil, promote_to \\ nil) do
-    %ChessQuo.Chess.Move{
+    %Move{
       from: from,
       to: to,
       piece: piece,

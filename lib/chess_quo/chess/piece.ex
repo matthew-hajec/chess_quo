@@ -7,9 +7,9 @@ defmodule ChessQuo.Chess.Piece do
   alias ChessQuo.Chess.Piece, as: Piece
 
   @type t :: %Piece{
-    color: Types.color,
-    piece: Types.piece_type
-  }
+          color: Types.color(),
+          piece: Types.piece_type()
+        }
 
   @derive [Poison.Encoder]
   defstruct [:color, :piece]
@@ -26,7 +26,7 @@ defmodule ChessQuo.Chess.Piece do
   @doc """
   Creates a new piece.
   """
-  @spec new(Types.color, Types.piece_type) :: %Piece{}
+  @spec new(Types.color(), Types.piece_type()) :: %Piece{}
   def new(color, piece) do
     %Piece{color: color, piece: piece}
   end

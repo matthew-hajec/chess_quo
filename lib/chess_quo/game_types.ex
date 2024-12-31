@@ -5,4 +5,5 @@ defmodule ChessQuo.GameTypes do
   @type color :: :white | :black
   @type piece_type :: :pawn | :rook | :knight | :bishop | :queen | :king
   @type player_type :: :host | :guest
+  @type castle_side :: :king | :queen
 end
