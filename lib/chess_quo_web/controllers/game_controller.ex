@@ -2,6 +2,8 @@ defmodule ChessQuoWeb.GameController do
   require Logger
   use ChessQuoWeb, :controller
 
+  alias ChessQuo.Lobby, as: Lobby
+
   @get_game_params_schema %{
     code: [type: :string, min_length: 8, max_length: 8]
   }
@@ -21,23 +23,36 @@ defmodule ChessQuoWeb.GameController do
   def handle_get_game(conn, params) do
     code = params["code"]
     secret = conn.cookies["current_game_secret"]
-    # Color and role are not verified, so it CAN NOT be trusted
-    # They should only be used for rendering the game page properly
-    color = conn.cookies["current_game_color"]
+    color = conn.cookies["current_game_color"] # Color is NOT verified! It is only used for rendering.
     role = role_from_string(conn.cookies["current_game_role"])
 
-    with {:ok, true} <- ChessQuo.Lobby.lobby_exists?(code),
-         {:ok, true} <- ChessQuo.Lobby.is_valid_secret?(code, role, secret) do
-      conn
-      # Disable the layout
-      |> put_layout(false)
-      |> assign(:color, color)
-      |> assign(:role, role)
-      |> render(:game)
-    else
-      {:ok, false} ->
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        # The user should have the secret which corresponds to their role.
+        expected_secret =
+          if role == :host do
+            lobby.host_secret
+          else
+            lobby.guest_secret
+          end
+
+        # Make sure the user has the proper secret
+        if secret != expected_secret do
+          conn
+          |> put_flash(:error, "You are not authorized to join this lobby.")
+          |> redirect(to: "/")
+        else
+          conn
+          |> put_layout(false)
+          |> assign(:color, color)
+          |> assign(:role, role)
+          |> render(:game)
+        end
+
+      {:error, :not_found} ->
         conn
-        |> redirect(to: "/lobby/join/#{code}")
+        |> put_flash(:error, "No lobby exists with the given code.")
+        |> redirect(to: "/")
 
       {:error, reason} ->
         Logger.error("Failed to get game: #{inspect(reason)}")
