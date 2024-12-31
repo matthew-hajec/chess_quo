@@ -1,4 +1,4 @@
-defmodule GameTypes do
+defmodule ChessQuo.GameTypes do
   @moduledoc """
   Shared types for game and lobby related modules.
   """

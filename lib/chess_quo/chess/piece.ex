@@ -3,16 +3,20 @@ defmodule ChessQuo.Chess.Piece do
   Contains the definition of a chess piece.
   """
 
-  @valid_colors [:white, :black]
-  @valid_pieces [:pawn, :rook, :knight, :bishop, :queen, :king]
+  alias ChessQuo.GameTypes, as: Types
+  alias ChessQuo.Chess.Piece, as: Piece
+
+  @type t :: %Piece{
+    color: Types.color,
+    piece: Types.piece_type
+  }
 
   @derive [Poison.Encoder]
-  defstruct color: :white,
-            piece: :pawn
+  defstruct [:color, :piece]
 
   defimpl Poison.Decoder do
-    def decode(%ChessQuo.Chess.Piece{color: color, piece: piece}, _opts) do
-      %ChessQuo.Chess.Piece{
+    def decode(%Piece{color: color, piece: piece}, _opts) do
+      %Piece{
         color: String.to_existing_atom(color),
         piece: String.to_existing_atom(piece)
       }
@@ -22,11 +26,8 @@ defmodule ChessQuo.Chess.Piece do
   @doc """
   Creates a new piece.
   """
+  @spec new(Types.color, Types.piece_type) :: %Piece{}
   def new(color, piece) do
-    if Enum.member?(@valid_colors, color) and Enum.member?(@valid_pieces, piece) do
-      %ChessQuo.Chess.Piece{color: color, piece: piece}
-    else
-      raise ArgumentError, "Invalid color or piece"
-    end
+    %Piece{color: color, piece: piece}
   end
 end

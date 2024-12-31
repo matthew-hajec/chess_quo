@@ -15,23 +15,5 @@ defmodule PieceTest do
       assert piece.color == :black
       assert piece.piece == :queen
     end
-
-    test "raises ArgumentError for invalid color" do
-      assert_raise ArgumentError, fn ->
-        Piece.new(:green, :king)
-      end
-    end
-
-    test "raises ArgumentError for invalid piece type" do
-      assert_raise ArgumentError, fn ->
-        Piece.new(:white, :dragon)
-      end
-    end
-
-    test "raises ArgumentError for invalid color and piece type" do
-      assert_raise ArgumentError, fn ->
-        Piece.new(:purple, :unicorn)
-      end
-    end
   end
 end
