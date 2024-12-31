@@ -1,95 +1,75 @@
 defmodule ChessQuo.Chess.Game do
-  alias ChessQuo.Chess.{Piece, Move}
+  @moduledoc """
+  Definition and functions for interacting with a game.
+  """
+
+  alias ChessQuo.Chess.Game, as: Game
+  alias ChessQuo.Chess.Piece, as: Piece
+  alias ChessQuo.Chess.Move, as: Move
+  alias ChessQuo.GameTypes, as: Types
+
+  @type t :: %Game{
+          turn: Types.color(),
+          # 64 elements, nil represents empty
+          board: [Piece.t() | nil],
+          previous_move: Move.t() | nil,
+          move_history: [Move.t()],
+          status: Types.game_status()
+        }
 
   @derive Poison.Encoder
   defstruct turn: :white,
-
-            # 64 elements, 0-7 is the first row, 8-15 is the second row, etc.
-            # Ranks 3-6 (Empty Squares)
             board:
               [
-                # Rank 1 (White's Back Rank)
-                # a1
+                # White's Back Rank
                 %Piece{color: :white, piece: :rook},
-                # b1
                 %Piece{color: :white, piece: :knight},
-                # c1
                 %Piece{color: :white, piece: :bishop},
-                # d1
                 %Piece{color: :white, piece: :queen},
-                # e1
                 %Piece{color: :white, piece: :king},
-                # f1
                 %Piece{color: :white, piece: :bishop},
-                # g1
                 %Piece{color: :white, piece: :knight},
-                # h1
                 %Piece{color: :white, piece: :rook},
 
-                # Rank 2 (White's Pawns)
-                # a2
+                # White's Pawns
                 %Piece{color: :white, piece: :pawn},
-                # b2
                 %Piece{color: :white, piece: :pawn},
-                # c2
                 %Piece{color: :white, piece: :pawn},
-                # d2
                 %Piece{color: :white, piece: :pawn},
-                # e2
                 %Piece{color: :white, piece: :pawn},
-                # f2
                 %Piece{color: :white, piece: :pawn},
-                # g2
                 %Piece{color: :white, piece: :pawn},
-                # h2
                 %Piece{color: :white, piece: :pawn}
               ] ++
                 List.duplicate(nil, 32) ++
                 [
-                  # Rank 7 (Black's Pawns)
-                  # a7
+                  # Black's Pawns
                   %Piece{color: :black, piece: :pawn},
-                  # b7
                   %Piece{color: :black, piece: :pawn},
-                  # c7
                   %Piece{color: :black, piece: :pawn},
-                  # d7
                   %Piece{color: :black, piece: :pawn},
-                  # e7
                   %Piece{color: :black, piece: :pawn},
-                  # f7
                   %Piece{color: :black, piece: :pawn},
-                  # g7
                   %Piece{color: :black, piece: :pawn},
-                  # h7
                   %Piece{color: :black, piece: :pawn},
 
-                  # Rank 8 (Black's Back Rank)
-                  # a8
+                  # Black's Back Rank
                   %Piece{color: :black, piece: :rook},
-                  # b8
                   %Piece{color: :black, piece: :knight},
-                  # c8
                   %Piece{color: :black, piece: :bishop},
-                  # d8
                   %Piece{color: :black, piece: :queen},
-                  # e8
                   %Piece{color: :black, piece: :king},
-                  # f8
                   %Piece{color: :black, piece: :bishop},
-                  # g8
                   %Piece{color: :black, piece: :knight},
-                  # h8
                   %Piece{color: :black, piece: :rook}
                 ],
             previous_move: nil,
             move_history: [],
-            # Can be :ongoing, :white_victory, :black_victory, or :draw
             status: :ongoing
 
   defimpl Poison.Decoder do
     def decode(
-          %ChessQuo.Chess.Game{
+          %Game{
             turn: turn,
             board: board,
             previous_move: previous_move,
@@ -128,7 +108,7 @@ defmodule ChessQuo.Chess.Game do
           status
         end
 
-      %ChessQuo.Chess.Game{
+      %Game{
         turn: turn,
         board: board,
         previous_move: previous_move,
@@ -141,10 +121,12 @@ defmodule ChessQuo.Chess.Game do
   @doc """
   Creates a new game state.
   """
+  @spec new() :: Game.t()
   def new do
-    %ChessQuo.Chess.Game{}
+    %Game{}
   end
 
+  @spec at(Game.t(), non_neg_integer()) :: Piece.t() | nil
   def at(game, index) when index >= 0 and index <= 63 do
     Enum.at(game.board, index)
   end
@@ -153,85 +135,86 @@ defmodule ChessQuo.Chess.Game do
     raise ArgumentError, "Invalid board index=#{index}. Index must be between 0 and 63 inclusive."
   end
 
+  @spec apply_move(Game.t(), Move.t()) :: Game.t()
   def apply_move(game, move) do
-    new_board = apply_castle_to_rook(game.board, move)
-    new_board = apply_capture(new_board, move)
-    new_board = apply_pawn_promotion(new_board, move)
+    game =
+      game
+      |> apply_castle_to_rook(move)
+      |> apply_capture(move)
+      |> apply_pawn_promotion(move)
 
-    # Move the piece
     # Piece may have been changed by promotion
-    piece = Enum.at(new_board, move.from)
-    new_board = List.replace_at(new_board, move.from, nil)
-    new_board = List.replace_at(new_board, move.to, piece)
+    piece = Enum.at(game.board, move.from)
+
+    board =
+      List.replace_at(game.board, move.from, nil)
+      |> List.replace_at(move.to, piece)
 
     move_history = [move | game.move_history]
 
-    %ChessQuo.Chess.Game{
+    %Game{
       game
-      | board: new_board,
+      | board: board,
         turn: next_turn(game.turn),
         previous_move: move,
         move_history: move_history
     }
   end
 
-  def end_game(game, :draw) do
-    %ChessQuo.Chess.Game{game | status: :draw}
+  @spec end_game(Game.t(), Types.game_status()) :: Game.t()
+  def end_game(game, game_status) do
+    %Game{game | status: game_status}
   end
 
-  def end_game(game, :white_victory) do
-    %ChessQuo.Chess.Game{game | status: :white_victory}
-  end
+  @spec apply_castle_to_rook(Game.t(), Move.t()) :: Game.t()
+  defp apply_castle_to_rook(game, move) do
+    king_start_idx = move.from
 
-  def end_game(game, :black_victory) do
-    %ChessQuo.Chess.Game{game | status: :black_victory}
-  end
-
-  defp apply_castle_to_rook(board, move) do
     # If the move is a castle move, move the rook as well
-    # Returns a new board
-    if move.castle_side != nil do
-      king_start_idx = move.from
+    case move.castle_side do
+      nil ->
+        game
 
-      if move.castle_side == :king do
+      :king ->
         rook_start_idx = king_start_idx + 3
         rook_end_idx = king_start_idx + 1
-        rook = Enum.at(board, rook_start_idx)
+        rook = Enum.at(game.board, rook_start_idx)
 
-        new_board = List.replace_at(board, rook_start_idx, nil)
-        List.replace_at(new_board, rook_end_idx, rook)
-      else
+        board = List.replace_at(game.board, rook_start_idx, nil)
+        board = List.replace_at(board, rook_end_idx, rook)
+        %Game{game | board: board}
+
+      :queen ->
         rook_start_idx = king_start_idx - 4
         rook_end_idx = king_start_idx - 1
-        rook = Enum.at(board, rook_start_idx)
+        rook = Enum.at(game.board, rook_start_idx)
 
-        new_board = List.replace_at(board, rook_start_idx, nil)
-        List.replace_at(new_board, rook_end_idx, rook)
-      end
-    else
-      # Return the original board when not castling
-      board
+        board = List.replace_at(game.board, rook_start_idx, nil)
+        board = List.replace_at(board, rook_end_idx, rook)
+        %Game{game | board: board}
     end
   end
 
-  defp apply_capture(board, move) do
+  @spec apply_capture(Game.t(), Move.t()) :: Game.t()
+  defp apply_capture(game, move) do
     if move.captures != nil do
-      List.replace_at(board, move.captures, nil)
+      board = List.replace_at(game.board, move.captures, nil)
+      %Game{game | board: board}
     else
-      board
+      game
     end
   end
 
-  # This promotes the piece, but does not move it.
-  # This works because apply_move/2 does not validate moves, so the piece will be moved
-  defp apply_pawn_promotion(board, move) do
+  @spec apply_pawn_promotion(Game.t(), Move.t()) :: Game.t()
+  defp apply_pawn_promotion(game, move) do
     if move.promote_to != nil do
-      piece = Enum.at(board, move.from)
+      piece = Enum.at(game.board, move.from)
       piece = %Piece{piece | piece: move.promote_to}
 
-      List.replace_at(board, move.from, piece)
+      board = List.replace_at(game.board, move.from, piece)
+      %Game{game | board: board}
     else
-      board
+      game
     end
   end
 

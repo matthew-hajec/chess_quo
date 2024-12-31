@@ -11,9 +11,9 @@ defmodule ChessQuo.Chess.Move do
           from: non_neg_integer(),
           to: non_neg_integer(),
           piece: %Piece{},
-          captures: non_neg_integer(),
-          castle_side: Types.castle_side(),
-          promote_to: Types.piece_type()
+          captures: non_neg_integer() | nil,
+          castle_side: Types.castle_side() | nil,
+          promote_to: Types.piece_type() | nil
         }
 
   @derive [Poison.Encoder]
