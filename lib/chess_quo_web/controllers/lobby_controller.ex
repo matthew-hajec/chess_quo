@@ -118,11 +118,6 @@ defmodule ChessQuoWeb.LobbyController do
 
     case Lobby.load(code) do
       {:ok, lobby} ->
-        if lobby.guest_joined == true do
-          conn
-          |> put_flash(:error, "A guest has already joined this lobby from another device.")
-          |> redirect(to: "/")
-        else
           if lobby.password != password do
             conn
             |> put_flash(:error, "Invalid Password")
@@ -136,7 +131,6 @@ defmodule ChessQuoWeb.LobbyController do
             |> put_flash(:info, "Lobby joined")
             # CHANGEME!
             |> redirect(to: "/play/#{code}")
-          end
         end
     end
   end

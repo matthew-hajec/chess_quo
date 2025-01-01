@@ -18,7 +18,6 @@ defmodule ChessQuo.Lobby do
           host_color: Types.color(),
           game: Game.t(),
           draw_request_by: Types.player_type() | nil,
-          guest_joined: boolean()
         }
 
   defstruct [
@@ -29,7 +28,6 @@ defmodule ChessQuo.Lobby do
     :host_color,
     :game,
     :draw_request_by,
-    :guest_joined
   ]
 
   @spec new(String.t(), Types.color()) :: Lobby.t()
@@ -42,7 +40,6 @@ defmodule ChessQuo.Lobby do
       host_color: host_color,
       game: Game.new(),
       draw_request_by: nil,
-      guest_joined: false
     }
   end
 
@@ -81,13 +78,6 @@ defmodule ChessQuo.Lobby do
         "EX",
         @lobby_expire_seconds
       ],
-      [
-        "SET",
-        "lobby:#{lobby.code}:guest_joined",
-        to_string(lobby.guest_joined),
-        "EX",
-        @lobby_expire_seconds
-      ]
     ]
 
     # Redis returns "OK for successful SET commands
@@ -119,7 +109,6 @@ defmodule ChessQuo.Lobby do
       "lobby:#{code}:host_color",
       "lobby:#{code}:game",
       "lobby:#{code}:draw_request_by",
-      "lobby:#{code}:guest_joined"
     ]
 
     # Issue the MGET command with all our keys at once.
@@ -132,7 +121,6 @@ defmodule ChessQuo.Lobby do
          host_color_str,
          game_json,
          draw_request_by_str,
-         guest_joined_str
        ]} ->
         # -----------------------------------------------------------
         # 1. Ensure required fields are not nil
@@ -169,19 +157,14 @@ defmodule ChessQuo.Lobby do
                 other -> String.to_existing_atom(other)
               end
 
-            # -----------------------------------------------------------
-            # 4. Convert guest_joined from string to boolean.
-            #    (If nil, this will default to false).
-            # -----------------------------------------------------------
-            guest_joined = guest_joined_str == "true"
 
             # -----------------------------------------------------------
-            # 5. Decode the JSON game data back into your Game struct.
+            # 4. Decode the JSON game data back into your Game struct.
             # -----------------------------------------------------------
             game = Poison.decode!(game_json, as: %Game{})
 
             # -----------------------------------------------------------
-            # 6. Build and return the Lobby struct.
+            # 5. Build and return the Lobby struct.
             # -----------------------------------------------------------
             lobby = %Lobby{
               code: code,
@@ -191,7 +174,6 @@ defmodule ChessQuo.Lobby do
               host_color: host_color,
               game: game,
               draw_request_by: draw_request_by,
-              guest_joined: guest_joined
             }
 
             {:ok, lobby}
