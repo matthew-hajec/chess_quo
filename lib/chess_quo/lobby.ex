@@ -81,7 +81,7 @@ defmodule ChessQuo.Lobby do
         "EX",
         @lobby_expire_seconds
       ],
-      ["SET", "lobby:#{lobby.code}:guest_joined", to_string(lobby.guest_joined)]
+      ["SET", "lobby:#{lobby.code}:guest_joined", to_string(lobby.guest_joined), "EX", @lobby_expire_seconds]
     ]
 
     # Redis returns "OK for successful SET commands
@@ -103,6 +103,8 @@ defmodule ChessQuo.Lobby do
 
   @spec load(String.t()) :: {:ok, Lobby.t()} | {:error, atom()}
   def load(code) do
+    # Build all the Redis keys we want to fetch for this lobby.
+    IO.puts("Loading lobby: #{code}")
     keys = [
       "lobby:#{code}:password",
       "lobby:#{code}:host_secret",
@@ -113,7 +115,7 @@ defmodule ChessQuo.Lobby do
       "lobby:#{code}:guest_joined"
     ]
 
-    # Retrieve all fields in one MGET command
+    # Issue the MGET command with all our keys at once.
     case Redix.command(:redix, ["MGET" | keys]) do
       {:ok,
        [
@@ -125,59 +127,73 @@ defmodule ChessQuo.Lobby do
          draw_request_by_str,
          guest_joined_str
        ]} ->
-        # If any key is nil, this lobby code does not exist or is incomplete.
-        if Enum.any?(
-             [
-               password,
-               host_secret,
-               guest_secret,
-               host_color_str,
-               game_json,
-               draw_request_by_str,
-               guest_joined_str
-             ],
-             &is_nil/1
-           ) do
-          {:error, :not_found}
-        else
-          # Convert host_color back to an atom.
-          host_color = String.to_existing_atom(host_color_str)
+        # -----------------------------------------------------------
+        # 1. Ensure required fields are not nil
+        # -----------------------------------------------------------
+        required_fields = [
+          {:password, password},
+          {:host_secret, host_secret},
+          {:guest_secret, guest_secret},
+          {:host_color, host_color_str},
+          {:game, game_json}
+        ]
 
-          # Decode the game JSON string back to the Game struct/map.
-          # Adjust if your Poison-encoded data needs special handling.
-          game = Poison.decode!(game_json, as: %Game{})
+        # If any required field is nil, bail out immediately.
+        case Enum.find(required_fields, fn {_, value} -> is_nil(value) end) do
+          # For a missing field, return a descriptive error.
+          {field, _} ->
+            {:error, :"missing_#{field}"}
 
-          IO.puts(draw_request_by_str)
+          # If everything is present, proceed to parse the data.
+          nil ->
+            # -----------------------------------------------------------
+            # 2. Convert host_color to an existing atom. We assume it
+            #    has been defined in your code as :white, :black, etc.
+            # -----------------------------------------------------------
+            host_color = String.to_existing_atom(host_color_str)
 
-          # Convert draw_request_by back to an atom or nil.
-          draw_request_by =
-            case draw_request_by_str do
-              "" -> nil
-              other -> String.to_existing_atom(other)
-            end
+            # -----------------------------------------------------------
+            # 3. Convert draw_request_by if present; allow nil.
+            # -----------------------------------------------------------
+            draw_request_by =
+              case draw_request_by_str do
+                nil -> nil
+                "" -> nil
+                other -> String.to_existing_atom(other)
+              end
 
-          # Convert guest_joined back to a boolean.
-          guest_joined = guest_joined_str == "true"
+            # -----------------------------------------------------------
+            # 4. Convert guest_joined from string to boolean.
+            #    (If nil, this will default to false).
+            # -----------------------------------------------------------
+            guest_joined = (guest_joined_str == "true")
 
-          # Build the Lobby struct.
-          lobby = %Lobby{
-            code: code,
-            password: password,
-            host_secret: host_secret,
-            guest_secret: guest_secret,
-            host_color: host_color,
-            game: game,
-            draw_request_by: draw_request_by,
-            guest_joined: guest_joined
-          }
+            # -----------------------------------------------------------
+            # 5. Decode the JSON game data back into your Game struct.
+            # -----------------------------------------------------------
+            game = Poison.decode!(game_json, as: %Game{})
 
-          {:ok, lobby}
+            # -----------------------------------------------------------
+            # 6. Build and return the Lobby struct.
+            # -----------------------------------------------------------
+            lobby = %Lobby{
+              code: code,
+              password: password,
+              host_secret: host_secret,
+              guest_secret: guest_secret,
+              host_color: host_color,
+              game: game,
+              draw_request_by: draw_request_by,
+              guest_joined: guest_joined
+            }
+
+            {:ok, lobby}
         end
-
+      # If the shape of the result isn't what's expected, treat it as missing data.
       {:ok, _unexpected} ->
-        # If the shape of the result is not what's expected, consider it missing.
-        {:error, :not_found}
+        {:error, :lobby_not_found}
 
+      # If Redis fails or the connection fails, bubble up the error.
       {:error, reason} ->
         {:error, reason}
     end
