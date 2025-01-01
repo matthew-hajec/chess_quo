@@ -40,8 +40,7 @@ defmodule ChessQuoWeb.GameController do
         # Make sure the user has the proper secret
         if secret != expected_secret do
           conn
-          |> put_flash(:error, "You are not authorized to join this lobby.")
-          |> redirect(to: "/")
+          |> redirect(to: "/lobby/join/#{code}")
         else
           conn
           |> put_layout(false)
