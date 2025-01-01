@@ -23,7 +23,8 @@ defmodule ChessQuoWeb.GameController do
   def handle_get_game(conn, params) do
     code = params["code"]
     secret = conn.cookies["current_game_secret"]
-    color = conn.cookies["current_game_color"] # Color is NOT verified! It is only used for rendering.
+    # Color is NOT verified! It is only used for rendering.
+    color = conn.cookies["current_game_color"]
     role = role_from_string(conn.cookies["current_game_role"])
 
     case Lobby.load(code) do

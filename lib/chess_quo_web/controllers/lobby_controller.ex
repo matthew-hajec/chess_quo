@@ -60,7 +60,7 @@ defmodule ChessQuoWeb.LobbyController do
         "host",
         lobby.code,
         lobby.host_secret,
-        to_string(lobby.host_color)
+        lobby.host_color
       )
       |> redirect(to: "/play/#{lobby.code}")
     else
