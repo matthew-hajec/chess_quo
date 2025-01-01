@@ -30,4 +30,22 @@ defmodule ChessQuo.Chess.Piece do
   def new(color, piece) do
     %Piece{color: color, piece: piece}
   end
+
+  @doc """
+  Converts a string to a chess piece atom if valid, otherwise returns `nil`.
+
+  Valid pieces: `:pawn`, `:knight`, `:bishop`, `:rook`, `:queen`, `:king`.
+  """
+  @spec string_to_piece(String.t()) :: :pawn | :knight | :bishop | :rook | :queen | :king | nil
+  def string_to_piece(piece) do
+    case piece do
+      "pawn" -> :pawn
+      "knight" -> :knight
+      "bishop" -> :bishop
+      "rook" -> :rook
+      "queen" -> :queen
+      "king" -> :king
+      _ -> nil
+    end
+  end
 end

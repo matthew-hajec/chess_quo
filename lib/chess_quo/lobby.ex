@@ -81,7 +81,13 @@ defmodule ChessQuo.Lobby do
         "EX",
         @lobby_expire_seconds
       ],
-      ["SET", "lobby:#{lobby.code}:guest_joined", to_string(lobby.guest_joined), "EX", @lobby_expire_seconds]
+      [
+        "SET",
+        "lobby:#{lobby.code}:guest_joined",
+        to_string(lobby.guest_joined),
+        "EX",
+        @lobby_expire_seconds
+      ]
     ]
 
     # Redis returns "OK for successful SET commands
@@ -105,6 +111,7 @@ defmodule ChessQuo.Lobby do
   def load(code) do
     # Build all the Redis keys we want to fetch for this lobby.
     IO.puts("Loading lobby: #{code}")
+
     keys = [
       "lobby:#{code}:password",
       "lobby:#{code}:host_secret",
@@ -166,7 +173,7 @@ defmodule ChessQuo.Lobby do
             # 4. Convert guest_joined from string to boolean.
             #    (If nil, this will default to false).
             # -----------------------------------------------------------
-            guest_joined = (guest_joined_str == "true")
+            guest_joined = guest_joined_str == "true"
 
             # -----------------------------------------------------------
             # 5. Decode the JSON game data back into your Game struct.
@@ -189,6 +196,7 @@ defmodule ChessQuo.Lobby do
 
             {:ok, lobby}
         end
+
       # If the shape of the result isn't what's expected, treat it as missing data.
       {:ok, _unexpected} ->
         {:error, :lobby_not_found}

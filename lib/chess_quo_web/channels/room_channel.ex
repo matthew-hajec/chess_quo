@@ -1,40 +1,73 @@
 defmodule ChessQuoWeb.RoomChannel do
   use Phoenix.Channel
 
-  def join("room:" <> lobby_code, params, socket) do
-    %{
-      "current_game_role" => role,
-      "current_game_secret" => secret
-    } = params["params"]
+  alias ChessQuo.Lobby, as: Lobby
+  alias ChessQuo.Chess.MoveFinder, as: MoveFinder
+  alias ChessQuo.GameTypes, as: Types
+  alias ChessQuo.Chess.Piece, as: Piece
+  alias ChessQuo.Chess.Game, as: Game
 
+  def join(
+        "room:" <> code,
+        %{"params" => %{"current_game_role" => role, "current_game_secret" => secret}},
+        socket
+      ) do
     role = role_from_string(role)
 
-    # Make sure the lobby exists and the secret is valid
-    with {:ok, true} <- ChessQuo.Lobby.lobby_exists?(lobby_code),
-         {:ok, true} <- ChessQuo.Lobby.is_valid_secret?(lobby_code, role, secret) do
-      # Assign the role and lobby code to the socket
-      socket =
-        socket
-        |> assign(:role, role)
-        |> assign(:lobby_code, lobby_code)
-
-      {:ok, socket}
-    else
-      {:ok, false} ->
-        {:error, %{reason: "lobby_not_found"}}
+    case load_and_authorize_lobby(code, role, secret) do
+      {:ok, _} ->
+        {:ok, assign(socket, :role, role) |> assign(:code, code)}
 
       {:error, reason} ->
         {:error, %{reason: reason}}
     end
   end
 
+  @doc """
+  Loads the lobby, and returns if the user is authorized. If the user is not authorized or loading the lobby fails,
+  an error is returned.
+  """
+  @spec load_and_authorize_lobby(String.t(), Types.player_type(), String.t()) ::
+          {:ok, Lobby.t()} | {:error, atom()}
+  defp load_and_authorize_lobby(code, role, secret) do
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        if player_secret(lobby, role) == secret do
+          {:ok, lobby}
+        else
+          {:error, :not_authorized}
+        end
+
+      {:error, :not_found} ->
+        {:error, :lobby_not_found}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @doc """
+  Extracts the secret for the specified role.
+  """
+  @spec player_secret(Lobby.t(), Types.player_type()) :: String.t()
+  defp player_secret(%Lobby{host_secret: host_secret}, :host), do: host_secret
+  defp player_secret(%Lobby{guest_secret: guest_secret}, _role), do: guest_secret
+
+  @doc """
+  Extracts the player's color based on their role.
+  """
+  @spec player_color(Lobby.t(), Types.player_type()) :: Types.color()
+  defp player_color(%Lobby{host_color: color}, :host), do: color
+  defp player_color(%Lobby{host_color: :white}, _), do: :black
+  defp player_color(%Lobby{host_color: :black}, _), do: :white
+
   def handle_in("get_game_state", _, socket) do
-    lobby_code = socket.assigns[:lobby_code]
+    code = socket.assigns[:code]
 
     # Get the game state
-    case ChessQuo.Lobby.get_game(lobby_code) do
-      {:ok, game} ->
-        {:reply, {:ok, Poison.encode!(game)}, socket}
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        {:reply, {:ok, Poison.encode!(lobby.game)}, socket}
 
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
@@ -42,21 +75,22 @@ defmodule ChessQuoWeb.RoomChannel do
   end
 
   def handle_in("get_valid_moves", params, socket) do
-    lobby_code = socket.assigns[:lobby_code]
+    code = socket.assigns[:code]
     board_index = params["board_index"]
 
-    with true <- is_valid_board_index?(board_index),
-         {:ok, game} <- ChessQuo.Lobby.get_game(lobby_code) do
-      valid_moves = ChessQuo.Chess.MoveFinder.find_valid_moves(game)
-      piece_moves = Enum.filter(valid_moves, fn move -> move.from == board_index end)
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        unless is_valid_board_index?(board_index) do
+          {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
+        else
+          valid_moves = MoveFinder.find_valid_moves(lobby.game)
+          piece_moves = Enum.filter(valid_moves, fn move -> move.from == board_index end)
 
-      # Encode the piece moves to JSON
-      piece_moves_json = Enum.map(piece_moves, &Poison.encode!/1)
+          # Encode the moves into JSON to send to the client
+          piece_moves_json = Enum.map(piece_moves, &Poison.encode!/1)
 
-      {:reply, {:ok, piece_moves_json}, socket}
-    else
-      false ->
-        {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
+          {:reply, {:ok, piece_moves_json}, socket}
+        end
 
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
@@ -64,49 +98,55 @@ defmodule ChessQuoWeb.RoomChannel do
   end
 
   def handle_in("make_move", params, socket) do
-    lobby_code = socket.assigns[:lobby_code]
+    code = socket.assigns[:code]
     role = socket.assigns[:role]
     from = params["from"]
     to = params["to"]
-    promote_to = params["promote_to"] || nil
+    promote_to = Piece.string_to_piece(params["promote_to"])
 
-    promote_to =
-      if promote_to != nil do
-        String.to_existing_atom(promote_to)
-      else
-        nil
+    is_valid_input =
+      Enum.all?([
+        is_valid_board_index?(from),
+        is_valid_board_index?(to),
+        promote_to == nil
+      ])
+
+    if is_valid_input do
+      case Lobby.load(code) do
+        # Handle the case where a draw has been requested
+        {:ok, %Lobby{draw_request_by: draw_request_by}} when not is_nil(draw_request_by) ->
+          {:reply, {:error, %{reason: :draw_requested}}, socket}
+
+        # Handle a game which is not ongoing
+        {:ok, %Lobby{game: %Game{status: status}}} when status != :ongoing ->
+          {:reply, {:error, %{reason: :game_not_ongoing}}, socket}
+
+        # Handle a game where a move can be made by one player
+        {:ok, %Lobby{game: %Game{turn: turn}} = lobby} ->
+          # Make sure it's the requesting player's turn
+          if player_color(lobby, role) == turn do
+            # It's the players move
+            process_move(lobby, from, to, promote_to, turn, socket)
+          else
+            {:reply, {:error, %{reason: :invalid_turn}}, socket}
+          end
+
+        {:error, reason} ->
+          {:reply, {:error, %{reason: reason}}, socket}
       end
-
-    with true <- is_valid_board_index?(from),
-         true <- is_valid_board_index?(to),
-         {:ok, game} <- ChessQuo.Lobby.get_game(lobby_code),
-         :ok <- ensure_game_not_ended(game),
-         {:ok, color} <- ChessQuo.Lobby.get_color(lobby_code, role),
-         {:ok, nil} <- ChessQuo.Lobby.get_draw_request_by(lobby_code),
-         :ok <- ensure_player_turn(game, color) do
-      process_move(game, from, to, promote_to, color, lobby_code, socket)
     else
-      false ->
-        {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
-
-      # Draw request
-      {:ok, _} ->
-        {:reply, {:error, %{reason: "draw_requested"}}, socket}
-
-      {:error, reason} ->
-        {:reply, {:error, %{reason: reason}}, socket}
+      {:reply, {:error, %{reason: :invalid_input}}, socket}
     end
   end
 
   def handle_in("request_draw", _params, socket) do
     # Ask the other player if they want to draw
-    lobby_code = socket.assigns[:lobby_code]
+    code = socket.assigns[:code]
     role = socket.assigns[:role]
 
-    # Store the draw request so that the other player can't force a draw
-    with :ok <- ChessQuo.Lobby.request_draw(lobby_code, role) do
+    with {:ok, lobby} <- Lobby.load(code),
+         :ok <- Lobby.save(%Lobby{lobby | draw_request_by: role}) do
       broadcast!(socket, "draw_requested", %{role: role})
-
       {:reply, {:ok, true}, socket}
     else
       {:error, reason} ->
@@ -115,18 +155,22 @@ defmodule ChessQuoWeb.RoomChannel do
   end
 
   def handle_in("accept_draw", _params, socket) do
-    lobby_code = socket.assigns[:lobby_code]
+    code = socket.assigns[:code]
     role = socket.assigns[:role]
     opposite_role = if role == :host, do: :guest, else: :host
 
-    with {:ok, ^opposite_role} <- ChessQuo.Lobby.get_draw_request_by(lobby_code) do
-      end_game(lobby_code, :draw, socket)
-    else
-      {:ok, nil} ->
-        {:reply, {:error, %{reason: "no_draw_request"}}, socket}
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        case lobby.draw_request_by do
+          nil ->
+            {:reply, {:error, %{reason: :no_draw_request}}, socket}
 
-      {:ok, ^role} ->
-        {:reply, {:error, %{reason: "cannot_accept_own_draw_request"}}, socket}
+          ^role ->
+            {:reply, {:error, %{reason: :cannot_accept_own_draw}}, socket}
+
+          ^opposite_role ->
+            end_game(lobby, :draw, socket)
+        end
 
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
@@ -134,11 +178,11 @@ defmodule ChessQuoWeb.RoomChannel do
   end
 
   def handle_in("deny_draw", _params, socket) do
-    lobby_code = socket.assigns[:lobby_code]
+    code = socket.assigns[:code]
     role = socket.assigns[:role]
 
-    # Delete the draw request
-    with :ok <- ChessQuo.Lobby.delete_draw_request(lobby_code) do
+    with {:ok, lobby} <- Lobby.load(code),
+         :ok <- Lobby.save(%Lobby{lobby | draw_request_by: nil}) do
       broadcast!(socket, "draw_denied", %{role: role})
 
       {:reply, {:ok, true}, socket}
@@ -149,28 +193,29 @@ defmodule ChessQuoWeb.RoomChannel do
   end
 
   def handle_in("resign", _params, socket) do
-    lobby_code = socket.assigns[:lobby_code]
+    code = socket.assigns[:code]
     role = socket.assigns[:role]
 
     # End the game with the other player winning
     opposite_role = if role == :host, do: :guest, else: :host
 
-    case ChessQuo.Lobby.get_color(lobby_code, opposite_role) do
-      {:ok, color} ->
-        new_status = String.to_existing_atom("#{color}_victory")
-        end_game(lobby_code, new_status, socket)
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        # Attribute the victory to the opposite player
+        status = String.to_existing_atom("#{player_color(lobby, opposite_role)}_victory")
+        end_game(lobby, status, socket)
 
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
     end
   end
 
-  defp process_move(game, from, to, promote_to, color, lobby_code, socket) do
-    valid_moves = ChessQuo.Chess.MoveFinder.find_valid_moves(game)
+  defp process_move(lobby, from, to, promote_to, color, socket) do
+    valid_moves = ChessQuo.Chess.MoveFinder.find_valid_moves(lobby.game)
 
     case find_move(valid_moves, color, from, to, promote_to) do
       {:ok, move} ->
-        apply_and_broadcast_move(game, move, color, lobby_code, socket)
+        apply_and_broadcast_move(lobby, move, color, socket)
 
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
@@ -183,67 +228,51 @@ defmodule ChessQuoWeb.RoomChannel do
              move.piece.color == color
          end) do
       nil ->
-        {:error, "invalid_move"}
+        {:error, :invalid_move}
 
       move ->
         {:ok, move}
     end
   end
 
-  defp ensure_player_turn(game, color) do
-    if game.turn == color do
-      :ok
-    else
-      {:error, "not_your_turn"}
-    end
-  end
+  defp apply_and_broadcast_move(lobby, move, color, socket) do
+    game = Game.apply_move(lobby.game, move)
+    lobby = %Lobby{lobby | game: game}
 
-  defp ensure_game_not_ended(game) do
-    if game.status == :ongoing do
-      :ok
-    else
-      {:error, "game_ended"}
-    end
-  end
-
-  defp apply_and_broadcast_move(game, move, color, lobby_code, socket) do
-    new_game = ChessQuo.Chess.Game.apply_move(game, move)
-
-    case ChessQuo.Lobby.save_game(lobby_code, new_game) do
-      {:ok, _} ->
-        broadcast!(socket, "game_state_updated", %{game: Poison.encode!(new_game)})
+    case Lobby.save(lobby) do
+      :ok ->
+        broadcast!(socket, "game_state_updated", %{game: Poison.encode!(game)})
 
         # Check the game condition
-        game_condition = ChessQuo.Chess.MoveFinder.game_condition(new_game)
+        game_condition = MoveFinder.game_condition(game)
 
         case game_condition do
           :checkmate ->
-            new_status = String.to_existing_atom("#{color}_victory")
-            end_game(lobby_code, new_status, socket)
+            status = String.to_existing_atom("#{color}_victory")
+            end_game(lobby, status, socket)
 
           :stalemate ->
-            end_game(lobby_code, :draw, socket)
+            end_game(lobby, :draw, socket)
 
           _ ->
             nil
         end
 
-        {:reply, {:ok, Poison.encode!(new_game)}, socket}
+        {:reply, {:ok, Poison.encode!(game)}, socket}
 
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
     end
   end
 
-  defp end_game(lobby_code, reason, socket) do
-    # Get the game state
-    with {:ok, game} <- ChessQuo.Lobby.get_game(lobby_code),
-         game <- ChessQuo.Chess.Game.end_game(game, reason),
-         {:ok, _} <- ChessQuo.Lobby.save_game(lobby_code, game) do
-      broadcast!(socket, "game_over", %{message: game_over_message(reason)})
+  defp end_game(lobby, status, socket) do
+    lobby = %Lobby{lobby | game: %Game{lobby.game | status: status}}
 
-      {:reply, {:ok, true}, socket}
-    else
+    case Lobby.save(lobby) do
+      :ok ->
+        broadcast!(socket, "game_over", %{message: game_over_message(status)})
+        {:reply, {:ok, true}, socket}
+
       {:error, reason} ->
         {:reply, {:error, %{reason: reason}}, socket}
     end
