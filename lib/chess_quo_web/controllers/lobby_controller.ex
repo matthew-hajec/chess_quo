@@ -121,7 +121,7 @@ defmodule ChessQuoWeb.LobbyController do
           if lobby.password != password do
             conn
             |> put_flash(:error, "Invalid Password")
-            |> redirect(tp: "lobby/join/#{code}")
+            |> redirect(to: "/lobby/join/#{code}")
           else
             # The user can join this lobby
             color = if lobby.host_color == :white, do: :black, else: :white
