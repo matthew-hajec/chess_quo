@@ -82,7 +82,7 @@ defmodule ChessQuoWeb.LobbyController do
         |> assign(:page_title, "Join Lobby")
         |> render(:join_lobby)
 
-      {:error, :not_found} ->
+      {:error, :lobby_not_found} ->
         conn
         |> put_flash(:error, "No lobby exists with the given code.")
         |> redirect(to: "/")
@@ -132,6 +132,10 @@ defmodule ChessQuoWeb.LobbyController do
             # CHANGEME!
             |> redirect(to: "/play/#{code}")
         end
+      {:error, :lobby_not_found} ->
+        conn
+        |> put_flash(:error, "No lobby exists with the given code.")
+        |> redirect(to: "/")
     end
   end
 end

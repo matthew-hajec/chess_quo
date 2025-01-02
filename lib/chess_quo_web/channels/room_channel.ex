@@ -37,10 +37,6 @@ defmodule ChessQuoWeb.RoomChannel do
         else
           {:error, :not_authorized}
         end
-
-      {:error, :not_found} ->
-        {:error, :lobby_not_found}
-
       {:error, reason} ->
         {:error, reason}
     end

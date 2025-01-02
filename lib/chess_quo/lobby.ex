@@ -135,9 +135,9 @@ defmodule ChessQuo.Lobby do
 
         # If any required field is nil, bail out immediately.
         case Enum.find(required_fields, fn {_, value} -> is_nil(value) end) do
-          # For a missing field, return a descriptive error.
-          {field, _} ->
-            {:error, :"missing_#{field}"}
+          # If any field is nil, there is no lobby.
+          {_, _} ->
+            {:error, :lobby_not_found}
 
           # If everything is present, proceed to parse the data.
           nil ->

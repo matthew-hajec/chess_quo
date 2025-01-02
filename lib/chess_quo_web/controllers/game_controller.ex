@@ -49,7 +49,7 @@ defmodule ChessQuoWeb.GameController do
           |> render(:game)
         end
 
-      {:error, :not_found} ->
+      {:error, :lobby_not_found} ->
         conn
         |> put_flash(:error, "No lobby exists with the given code.")
         |> redirect(to: "/")
