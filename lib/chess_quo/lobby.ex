@@ -17,7 +17,7 @@ defmodule ChessQuo.Lobby do
           guest_secret: String.t(),
           host_color: Types.color(),
           game: Game.t(),
-          draw_request_by: Types.player_type() | nil,
+          draw_request_by: Types.player_type() | nil
         }
 
   defstruct [
@@ -27,7 +27,7 @@ defmodule ChessQuo.Lobby do
     :guest_secret,
     :host_color,
     :game,
-    :draw_request_by,
+    :draw_request_by
   ]
 
   @spec new(String.t(), Types.color()) :: Lobby.t()
@@ -39,7 +39,7 @@ defmodule ChessQuo.Lobby do
       guest_secret: generate_secret(),
       host_color: host_color,
       game: Game.new(),
-      draw_request_by: nil,
+      draw_request_by: nil
     }
   end
 
@@ -77,7 +77,7 @@ defmodule ChessQuo.Lobby do
         to_string(lobby.draw_request_by),
         "EX",
         @lobby_expire_seconds
-      ],
+      ]
     ]
 
     # Redis returns "OK for successful SET commands
@@ -108,7 +108,7 @@ defmodule ChessQuo.Lobby do
       "lobby:#{code}:guest_secret",
       "lobby:#{code}:host_color",
       "lobby:#{code}:game",
-      "lobby:#{code}:draw_request_by",
+      "lobby:#{code}:draw_request_by"
     ]
 
     # Issue the MGET command with all our keys at once.
@@ -120,7 +120,7 @@ defmodule ChessQuo.Lobby do
          guest_secret,
          host_color_str,
          game_json,
-         draw_request_by_str,
+         draw_request_by_str
        ]} ->
         # -----------------------------------------------------------
         # 1. Ensure required fields are not nil
@@ -157,7 +157,6 @@ defmodule ChessQuo.Lobby do
                 other -> String.to_existing_atom(other)
               end
 
-
             # -----------------------------------------------------------
             # 4. Decode the JSON game data back into your Game struct.
             # -----------------------------------------------------------
@@ -173,7 +172,7 @@ defmodule ChessQuo.Lobby do
               guest_secret: guest_secret,
               host_color: host_color,
               game: game,
-              draw_request_by: draw_request_by,
+              draw_request_by: draw_request_by
             }
 
             {:ok, lobby}

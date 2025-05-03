@@ -32,6 +32,7 @@
 >
   <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
     <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Promote Your Pawn</h2>
+
     <p class="text-center text-gray-600 mb-6">
       Choose a piece to promote your pawn to:
     </p>
@@ -39,23 +40,16 @@
     <% queen_url =
       if @color == "white",
         do: "https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg",
-        else: "https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg" %>
-
-    <% rook_url =
+        else: "https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg" %> <% rook_url =
       if @color == "white",
         do: "https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg",
-        else: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg" %>
-
-    <% bishop_url =
+        else: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg" %> <% bishop_url =
       if @color == "white",
         do: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg",
-        else: "https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg" %>
-
-    <% knight_url =
+        else: "https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg" %> <% knight_url =
       if @color == "white",
         do: "https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg",
         else: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg" %>
-
     <div class="grid grid-cols-2 gap-6">
       <!-- Queen -->
       <button
@@ -106,10 +100,12 @@
       <!-- The confirmation header will be inserted here via JavaScript -->
       Are you sure?
     </h2>
+
     <p id="confirmation-message" class="text-center text-gray-600 mb-6">
       <!-- The confirmation message will be inserted here via JavaScript -->
       No message set. This is an error.
     </p>
+
     <div class="flex justify-center space-x-4">
       <button
         data-choice="yes"
@@ -117,6 +113,7 @@
       >
         Yes
       </button>
+
       <button
         data-choice="no"
         class="confirmation-button px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
@@ -140,10 +137,12 @@
       <!-- The notification header will be inserted here via JavaScript -->
       Notification
     </h2>
+
     <p id="notification-message" class="text-center text-gray-600 mb-6">
       <!-- The notification message will be inserted here via JavaScript -->
       No message set. This is an error.
     </p>
+
     <div id="notification-control" class="flex justify-center space-x-4">
       <button
         id="notification-close"
@@ -195,6 +194,7 @@
     <button id="resign-button" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
       Resign
     </button>
+
     <button id="draw-button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
       Offer Draw
     </button>

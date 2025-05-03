@@ -4,11 +4,23 @@ defmodule ChessQuo.GameTypes do
   """
   # Define the atoms so that String.to_existing_atom does not fail.
   @preloaded_atoms [
-    :white, :black, :pawn, :rook, :knight, :bishop, :queen, :king,
-    :host, :guest, :ongoing, :white_victory, :black_victory, :draw
+    :white,
+    :black,
+    :pawn,
+    :rook,
+    :knight,
+    :bishop,
+    :queen,
+    :king,
+    :host,
+    :guest,
+    :ongoing,
+    :white_victory,
+    :black_victory,
+    :draw
   ]
   # This should never do anything, but it exists to prevent optimization.
-  Enum.each(@preloaded_atoms, fn atom -> if atom == '', do: IO.puts("") end)
+  Enum.each(@preloaded_atoms, fn atom -> if atom == ~c"", do: IO.puts("") end)
 
   @type color :: :white | :black
   @type piece_type :: :pawn | :rook | :knight | :bishop | :queen | :king

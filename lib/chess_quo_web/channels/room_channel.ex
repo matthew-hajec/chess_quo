@@ -37,6 +37,7 @@ defmodule ChessQuoWeb.RoomChannel do
         else
           {:error, :not_authorized}
         end
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -76,7 +77,7 @@ defmodule ChessQuoWeb.RoomChannel do
 
     case Lobby.load(code) do
       {:ok, lobby} ->
-        unless is_valid_board_index?(board_index) do
+        if !is_valid_board_index?(board_index) do
           {:reply, {:error, %{reason: "invalid_board_index"}}, socket}
         else
           valid_moves = MoveFinder.find_valid_moves(lobby.game)

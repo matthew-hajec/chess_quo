@@ -118,20 +118,21 @@ defmodule ChessQuoWeb.LobbyController do
 
     case Lobby.load(code) do
       {:ok, lobby} ->
-          if lobby.password != password do
-            conn
-            |> put_flash(:error, "Invalid Password")
-            |> redirect(to: "/lobby/join/#{code}")
-          else
-            # The user can join this lobby
-            color = if lobby.host_color == :white, do: :black, else: :white
+        if lobby.password != password do
+          conn
+          |> put_flash(:error, "Invalid Password")
+          |> redirect(to: "/lobby/join/#{code}")
+        else
+          # The user can join this lobby
+          color = if lobby.host_color == :white, do: :black, else: :white
 
-            conn
-            |> help_set_game_cookies("guest", code, lobby.guest_secret, color)
-            |> put_flash(:info, "Lobby joined")
-            # CHANGEME!
-            |> redirect(to: "/play/#{code}")
+          conn
+          |> help_set_game_cookies("guest", code, lobby.guest_secret, color)
+          |> put_flash(:info, "Lobby joined")
+          # CHANGEME!
+          |> redirect(to: "/play/#{code}")
         end
+
       {:error, :lobby_not_found} ->
         conn
         |> put_flash(:error, "No lobby exists with the given code.")
