@@ -11,6 +11,8 @@ defmodule ChessQuoWeb.UserSocket do
   # pointing to the `ChessQuoWeb.RoomChannel`:
   #
   channel "room:*", ChessQuoWeb.RoomChannel
+
+  channel "new_room:*", ChessQuoWeb.NewRoomChannel
   #
   # To create a channel file, use the mix task:
   #
