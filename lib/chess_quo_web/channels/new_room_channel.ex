@@ -93,6 +93,18 @@ defmodule ChessQuoWeb.NewRoomChannel do
     end
   end
 
+  # Saves the lobby and broadcasts the updated lobby state to all subscribers
+  defp save_and_broadcast_lobby(lobby, socket) do
+    case Lobby.save(lobby) do
+      :ok ->
+        broadcast!(socket, "lobby_updated", %{lobby: lobby})
+        {:ok, lobby}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   # Checks if the user has provided the correct secret for the specified role and lobby code
   # Returns {:ok, lobby} if authorized, or {:error, reason} if not
   # The error reasons can be:
