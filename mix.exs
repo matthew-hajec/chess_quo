@@ -55,7 +55,7 @@ defmodule ChessQuo.MixProject do
       {:poison, "~> 6.0"},
       {:tarams, "~> 1.8"},
       {:floki, ">= 0.30.0", only: :test},
-      {:esbuild,   "~> 0.8", runtime: false},
+      {:esbuild,   "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind,  "~> 0.2", runtime: false},
       {:dialyxir, "~>1.3", only: :dev, runtime: false},
       {:mix_audit, "~>2.1", only: :dev, runtime: false},
