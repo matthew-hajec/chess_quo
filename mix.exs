@@ -37,12 +37,7 @@ defmodule ChessQuo.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       # TODO bump on release to {:phoenix_live_view, "~> 1.0.0"},
       {:phoenix_live_view, "~> 1.0.0-rc.1", override: true},
-      {:floki, ">= 0.30.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:esbuild,   "~> 0.8", runtime: false},
-      {:tailwind,  "~> 0.2", runtime: false},
-      {:dialyxir, "~>1.3", only: [:dev], runtime: false},
-      {:mix_audit, "~>2.1", only: [:dev], runtime: false},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",
@@ -58,7 +53,13 @@ defmodule ChessQuo.MixProject do
       {:bandit, "~> 1.5"},
       {:redix, "~> 1.5"},
       {:poison, "~> 6.0"},
-      {:tarams, "~> 1.8"}
+      {:tarams, "~> 1.8"},
+      {:floki, ">= 0.30.0", only: :test},
+      {:esbuild,   "~> 0.8", runtime: false},
+      {:tailwind,  "~> 0.2", runtime: false},
+      {:dialyxir, "~>1.3", only: :dev, runtime: false},
+      {:mix_audit, "~>2.1", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.30", only: :dev, runtime: false}
     ]
   end
 
