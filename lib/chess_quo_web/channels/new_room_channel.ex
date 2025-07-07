@@ -9,6 +9,10 @@ defmodule ChessQuoWeb.NewRoomChannel do
     - Parameters:
       - `current_game_role`: The role of the user in the game, either "host" or "guest".
       - `current_game_secret`: The secret associated with the user's role for authentication.
+    - Error Reasons:
+      - `not_authorized`: The user is not authorized to join the room, possibly due to an incorrect secret or role mismatch.
+      - `lobby_not_found`: The specified lobby code does not exist or has expired.
+      - `unexpected_error`: An unexpected error occurred while processing the join request.
 
 
   ## Outgoing Messages
@@ -61,4 +65,58 @@ defmodule ChessQuoWeb.NewRoomChannel do
 
   use Phoenix.Channel
 
+  alias ChessQuo.Lobby, as: Lobby
+  alias ChessQuo.Chess.MoveFinder, as: MoveFinder
+  alias ChessQuo.GameTypes, as: Types
+  alias ChessQuo.Chess.Piece, as: Piece
+  alias ChessQuo.Chess.Game, as: Game
+
+  def join(
+        "room:" <> code,
+        %{"params" => %{"current_game_role" => role, "current_game_secret" => secret}},
+        socket
+      ) do
+    role = role_from_string(role)
+
+    case authorize_lobby(code, role, secret) do
+      {:ok, lobby} ->
+        socket =
+          socket
+          |> assign(:current_game_role, role)
+          |> assign(:current_game_secret, secret)
+
+        {:ok, %{lobby: lobby}, socket}
+
+      {:error, reason} ->
+        {:error, %{reason: reason}}
+    end
+  end
+
+  # Checks if the user has provided the correct secret for the specified role and lobby code
+  defp authorize_lobby(code, role, secret) do
+    case Lobby.load(code) do
+      {:ok, lobby} ->
+        if role_secret(lobby, role) == secret do
+          {:ok, lobby}
+        else
+          {:error, :not_authorized}
+        end
+
+      {:error, :lobby_not_found} ->
+        {:error, :lobby_not_found}
+
+      {:error, _} ->
+        {:error, :unexpected_error}
+    end
+  end
+
+  # Extracts the secret for the specified role
+  # If the role is :host, it returns the host secret, for any other role it returns the guest secret
+  defp role_secret(%Lobby{host_secret: host_secret}, :host), do: host_secret
+  defp role_secret(%Lobby{guest_secret: guest_secret}, _role), do: guest_secret
+
+  # Convert the role string to an atom
+  # If the role is "host", we return :host, for any other string we return :guest
+  defp role_from_string("host"), do: :host
+  defp role_from_string(_), do: :guest
 end
