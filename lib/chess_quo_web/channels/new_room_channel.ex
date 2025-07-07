@@ -71,6 +71,7 @@ defmodule ChessQuoWeb.NewRoomChannel do
   alias ChessQuo.Chess.Piece, as: Piece
   alias ChessQuo.Chess.Game, as: Game
 
+  @doc "Handles user joining a room channel."
   def join(
         "room:" <> code,
         %{"params" => %{"current_game_role" => role, "current_game_secret" => secret}},
@@ -93,6 +94,11 @@ defmodule ChessQuoWeb.NewRoomChannel do
   end
 
   # Checks if the user has provided the correct secret for the specified role and lobby code
+  # Returns {:ok, lobby} if authorized, or {:error, reason} if not
+  # The error reasons can be:
+  # - :not_authorized: The user is not authorized to join the lobby.
+  # - :lobby_not_found: The lobby with the specified code was not found.
+  # - :unexpected_error: An unexpected error occurred while loading the lobby.
   defp authorize_lobby(code, role, secret) do
     case Lobby.load(code) do
       {:ok, lobby} ->
