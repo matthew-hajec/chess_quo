@@ -65,6 +65,7 @@ defmodule ChessQuoWeb.NewRoomChannel do
 
   use Phoenix.Channel
 
+  alias ChessQuo.Chess.Move
   alias ChessQuo.Lobby, as: Lobby
   alias ChessQuo.Chess.MoveFinder, as: MoveFinder
   alias ChessQuo.GameTypes, as: Types
@@ -73,8 +74,8 @@ defmodule ChessQuoWeb.NewRoomChannel do
 
   @doc "Handles user joining a room channel."
   def join(
-        "room:" <> code,
-        %{"params" => %{"current_game_role" => role, "current_game_secret" => secret}},
+        "new_room:" <> code,
+        %{"current_game_role" => role, "current_game_secret" => secret},
         socket
       ) do
     role = role_from_string(role)
@@ -85,19 +86,47 @@ defmodule ChessQuoWeb.NewRoomChannel do
           socket
           |> assign(:current_game_role, role)
           |> assign(:current_game_secret, secret)
+          |> assign(:lobby, lobby)
 
-        {:ok, %{lobby: lobby}, socket}
+        # Remove sensitive fields
+        safe_lobby = Lobby.safe_lobby(lobby)
+
+        {:ok, %{lobby: Poison.encode!(safe_lobby)}, socket}
 
       {:error, reason} ->
         {:error, %{reason: reason}}
     end
   end
 
+  @doc "Handles getting valid moves for a piece."
+  def handle_in("get_valid_moves", %{"board_index" => board_index}, socket) do
+    lobby = socket.assigns[:lobby]
+
+    case is_valid_board_index?(board_index) do
+      true ->
+        valid_moves = MoveFinder.find_valid_moves(lobby.game)
+        piece_moves = Enum.filter(valid_moves, fn move -> move.from == board_index end)
+
+        {:reply, {:ok, Poison.encode!(piece_moves)}, socket}
+
+      false ->
+        {:reply, {:error, :invalid_board_index}, socket}
+    end
+  end
+
   # Saves the lobby and broadcasts the updated lobby state to all subscribers
-  defp save_and_broadcast_lobby(lobby, socket) do
+  # Uses the lobby state from the socket assigns
+  defp save_and_broadcast_lobby(socket) do
+    lobby = socket.assigns[:lobby]
+
+    # Remove sensitive fields
+    safe_lobby = Lobby.safe_lobby(lobby)
+
+    # Attempt to save the lobby state
     case Lobby.save(lobby) do
       :ok ->
-        broadcast!(socket, "lobby_updated", %{lobby: lobby})
+        broadcast!(socket, "lobby_updated", %{lobby: Poison.encode!(safe_lobby)})
+        # Return the lobby state after saving
         {:ok, lobby}
 
       {:error, reason} ->
@@ -137,4 +166,10 @@ defmodule ChessQuoWeb.NewRoomChannel do
   # If the role is "host", we return :host, for any other string we return :guest
   defp role_from_string("host"), do: :host
   defp role_from_string(_), do: :guest
+
+  # Checks if the provided board index is valid
+  # A valid board index is an integer between 0 and 63 (inclusive)
+  defp is_valid_board_index?(board_index) do
+    board_index in 0..63
+  end
 end
