@@ -188,6 +188,18 @@ defmodule ChessQuo.Lobby do
     end
   end
 
+  @spec safe_lobby(Lobby.t()) :: map()
+  @doc """
+  Returns a safe version of the lobby without sensitive data like secrets and password.
+  This is useful for broadcasting lobby information to clients without exposing sensitive details.
+  """
+  def safe_lobby(%Lobby{} = lobby) do
+    # Create a new Lobby struct with only the non-sensitive fields
+    lobby
+    |> Map.from_struct()
+    |> Map.drop([:password, :host_secret, :guest_secret])
+  end
+
   defp generate_code do
     @lobby_charset
     |> String.graphemes()
