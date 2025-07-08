@@ -3,7 +3,7 @@ defmodule ChessQuo.Chess.MoveFinder do
   Provides functions to find valid moves for all pieces on the board.
   """
 
-  alias ChessQuo.Chess.{Game, Piece}
+  alias ChessQuo.Chess.{Game, Piece, Move}
   alias ChessQuo.Chess.MoveFinder.{Helpers, CastleMove}
 
   @doc """
@@ -96,6 +96,26 @@ defmodule ChessQuo.Chess.MoveFinder do
     end
   end
 
+  @doc """
+  Checks if a move is valid for the current game state.
+  """
+  @spec valid_move?(Game.t(), Move.t()) :: boolean()
+  # Exit early if the move is for the wrong player's turn
+  def valid_move?(%Game{turn: turn} = _game, %Move{piece: %{color: color}}) when color != turn, do: false
+
+  # Check if the move is valid by comparing it against all valid moves
+  def valid_move?(game, move) do
+    # Get all valid moves for the game
+    valid_moves = find_valid_moves(game, 0, [], true)
+
+    # Check if the move is in the list of valid moves
+    Enum.any?(valid_moves, fn valid_move ->
+      valid_move.from == move.from and valid_move.to == move.to and
+        valid_move.piece.color == move.piece.color and
+        valid_move.promote_to == move.promote_to
+    end)
+  end
+
   defp remove_check_moves(game, moves) do
     Enum.filter(moves, fn move ->
       # Apply the move to create a new game state
@@ -105,4 +125,6 @@ defmodule ChessQuo.Chess.MoveFinder do
       not Helpers.king_in_check?(game_after_move, move.piece.color)
     end)
   end
+
+
 end
