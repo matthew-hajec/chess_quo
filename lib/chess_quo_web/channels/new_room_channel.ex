@@ -102,7 +102,7 @@ defmodule ChessQuoWeb.NewRoomChannel do
   def handle_in("get_valid_moves", %{"board_index" => board_index}, socket) do
     lobby = socket.assigns[:lobby]
 
-    case is_valid_board_index?(board_index) do
+    case valid_index?(board_index) do
       true ->
         valid_moves = MoveFinder.find_valid_moves(lobby.game)
         piece_moves = Enum.filter(valid_moves, fn move -> move.from == board_index end)
@@ -112,6 +112,12 @@ defmodule ChessQuoWeb.NewRoomChannel do
       false ->
         {:reply, {:error, :invalid_board_index}, socket}
     end
+  end
+
+
+  @doc "Handles making a move in the game."
+  def handle_in("make_move", %{"from" => from, "to" => to, "promote_to" => promote_to}, socket) do
+    lobby = socket.assigns[:lobby]
   end
 
   # Saves the lobby and broadcasts the updated lobby state to all subscribers
@@ -169,7 +175,7 @@ defmodule ChessQuoWeb.NewRoomChannel do
 
   # Checks if the provided board index is valid
   # A valid board index is an integer between 0 and 63 (inclusive)
-  defp is_valid_board_index?(board_index) do
+  defp valid_index?(board_index) do
     board_index in 0..63
   end
 end
