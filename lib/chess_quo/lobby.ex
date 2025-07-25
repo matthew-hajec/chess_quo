@@ -7,8 +7,8 @@ defmodule ChessQuo.Lobby do
 
   @lobby_charset "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   @lobby_code_length 8
-  # Lobby expires after 4 hours
-  @lobby_expire_seconds 3600 * 4
+  # Lobby expires after 1 week
+  @lobby_expire_seconds 3600 * 24 * 7
 
   @type t :: %Lobby{
           code: String.t(),
