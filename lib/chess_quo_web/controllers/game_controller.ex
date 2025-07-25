@@ -46,6 +46,7 @@ defmodule ChessQuoWeb.GameController do
           |> put_layout(false)
           |> assign(:color, color)
           |> assign(:role, role)
+          |> assign(:code, code)
           |> render(:game)
         end
 

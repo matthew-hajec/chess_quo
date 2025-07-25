@@ -6,7 +6,7 @@ defmodule ChessQuo.Lobby do
   alias ChessQuo.GameTypes, as: Types
 
   @lobby_charset "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  @lobby_code_length 8
+  @lobby_code_length 5
   # Lobby expires after 1 week
   @lobby_expire_seconds 3600 * 24 * 7
 
